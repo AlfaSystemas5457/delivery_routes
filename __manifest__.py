@@ -7,7 +7,7 @@
     'description': """Modulo de rutas de entrega""",
 
     'author': "DGV",
-    # 'website': "https://www.yourcompany.com",
+    'website': "https://github.com/AlfaSystemas5457/delivery_routes",
     'category': 'Uncategorized',
     'version': '0.1',
 
@@ -15,15 +15,13 @@
 
     'data': [
         'security/ir.model.access.csv',
-        # 'security/route_security.xml',
-        # 'security/groups_security.xml',
+        'security/groups_security.xml',
+        'security/route_security.xml',
         'views/res_users_views.xml',
-        # 'views/res_users_views.xml',
         'views/menu_views.xml',
         'views/route_sale_address_view.xml',
         'views/route_view.xml',
         'views/address_view.xml',
-        # 'views/contac_salesperson_view.xml',
     ],
     'installable': True,
     'application': True,

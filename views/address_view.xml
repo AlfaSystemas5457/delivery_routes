@@ -56,10 +56,9 @@
     </record>
 
     <record id="action_route_address" model="ir.actions.act_window">
-        <field name="name">Direcciones de Visita</field>
+        <field name="name">Diseño de rutas</field>
         <field name="res_model">route.address</field>
         <field name="view_mode">list,form</field>
-        <!-- <field name="domain">[('salesperson_ids.user_id', '=', uid)]</field> -->
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Agregar direcciones

@@ -8,10 +8,6 @@ class Route(models.Model):
 
     user_id = fields.Many2one(
         'res.users', string='Responsable', default=lambda self: self.env.user)
-    access_scope = fields.Selection([
-        ('all', 'Ver todas las rutas'),
-        ('assigned', 'Solo ver las asignadas')
-    ], string="Alcance de acceso a rutas", related='user_id.access_scope', store=True)
     name = fields.Char(
         string='Nombre de la Ruta',
         required=True,
@@ -35,6 +31,9 @@ class Route(models.Model):
 
     @api.model
     def create(self, vals):
+        if self.env.user.access_scope != 'assigned':
+            raise exceptions.AccessError("No tienes permiso para crear rutas.")
+
         if not vals.get('name'):
             vals['name'] = self.env['ir.sequence'].next_by_code(
                 'route.route.sequence')
@@ -46,13 +45,6 @@ class Route(models.Model):
             if len(record.warehouse_id) > 1:
                 raise exceptions.ValidationError(
                     "Solo puedes seleccionar un almacén.")
-
-    # @api.constrains('product')
-    # def _check_single_product(self):
-    #     for record in self:
-    #         if len(record.product) > 1:
-    #             raise exceptions.ValidationError(
-    #                 "Solo puedes seleccionar un Producto.")
 
     @api.model
     def default_get(self, fields):
@@ -107,18 +99,20 @@ class Route(models.Model):
     def action_end(self):
         for rec in self:
             rec.state = 'end'
+            rec.search()
 
 
-# class RouteRoute(models.Model):
-#     _inherit = 'route.route'
+class RouteRoute(models.Model):
+    _inherit = 'route.route'
 
-#     @api.model
-#     def search(self, args, offset=0, limit=None, order=None, count=False):
-#         print('\n\nhola!!!!!!!!!!!!\n\n')
-#         if self.env.context.get('default_salesperson_ids'):
-#             args.append(('salesperson_ids.user_id', '=',
-#                         self.env.context['default_salesperson_ids'][0][2][0]))
-#         return super(RouteRoute, self).search(args, offset=offset, limit=limit, order=order, count=count)
+    @api.model
+    def search_read(self, args, offset=0, limit=None, order=None, count=False):
+        self.ensure_one()
+        print('\n\nhola!!!!!!!!!!!!\n\n')
+        if self.env.context.get('default_salesperson_ids'):
+            args.append(('salesperson_ids.user_id', '=',
+                        self.env.context['default_salesperson_ids'][0][2][0]))
+        return super(RouteRoute, self).search_read()(args, offset=offset, limit=limit, order=order, count=count)
 
 
 class RouteSaleAddress(models.Model):
@@ -159,9 +153,6 @@ class RouteSaleAddress(models.Model):
                     }))
                 record.product_lines = product_lines
 
-    # def handle_button_sale(self):
-    #     print(
-    #         f'Venta de {[r.display_name for r in self.route_id.product]}!!!!!!!!!!!!!\n')
     def handle_button_sale(self):
         for record in self:
             if not record.contact:
@@ -233,12 +224,6 @@ class RouteSaleAddress(models.Model):
             contact = self.env['res.partner'].browse(vals['contact'])
             vals['address'] = self._compute_address_from_contact(contact)
         return super().write(vals)
-
-    # def action_save_status(self):
-    #     for rec in self:
-    #         rec.write({'status': rec.status})
-
-    #     return {'type': 'ir.actions.act_window_close'}
 
 
 class RouteSaleProductLine(models.Model):

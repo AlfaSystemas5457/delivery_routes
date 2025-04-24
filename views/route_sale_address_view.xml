@@ -42,18 +42,6 @@
                         class="btn-secondary"
                         icon="fa-save"
                         invisible="state != 'process'" />
-                    <!-- <button
-                        string="Cancel"
-                        type="object"
-                        special="cancel"
-                        class="btn-secondary"
-                        icon="fa-times" /> -->
-                    <!-- <button name="action_save_status"
-                        string="Guardar"
-                        type="object"
-                        special="save"
-                        class="btn-secondary"
-                        icon="fa-save" /> -->
                     <button name="action_load_route_products"
                         string="Cargar Productos de Ruta"
                         type="object"
@@ -64,19 +52,4 @@
             </form>
         </field>
     </record>
-
-
-    <!-- <record id="view_route_list" model="ir.ui.view">
-        <field name="name">route.route.list</field>
-        <field name="model">route.route</field>
-        <field name="arch" type="xml">
-            <list string="Rutas de Venta">
-                <field name="name" />
-                <field name="description" />
-                <field name="salesperson_ids" widget="many2many_tags" />
-                <field name="warehouse_id" />
-            </list>
-        </field>
-    </record> -->
-
 </odoo>

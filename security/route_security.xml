@@ -1,28 +1,48 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-    <!-- 🔒 Regla para ver solo tus registros y permitir la creación si 'access_scope' es 'assigned' -->
-    <record id="route_rule_assigned" model="ir.rule">
-        <field name="name">Ver y crear solo mis rutas</field>
-        <field name="model_id" ref="delivery_routes.model_route_route" />
-        <field name="domain_force">
-            [('user_id', '=', user.id)]
-        </field>
+    <!-- 🔒 Regla para usuarios con acceso limitado (solo rutas asignadas) -->
+    <record id="rule_route_assigned_only" model="ir.rule">
+        <field name="name">Ver solo rutas asignadas</field>
+        <field name="model_id" ref="model_route_route" />
+        <field name="domain_force">[('salesperson_ids.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('delivery_routes.group_route_access_assigned'))]" />
         <field name="perm_create" eval="True" />
-        <field name="perm_write" eval="True" />
-        <field name="perm_unlink" eval="True" />
         <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_unlink" eval="False" />
     </record>
 
-    <!-- 🔓 Regla para permitir ver todas las rutas si 'access_scope' es 'all' -->
-    <record id="route_rule_all" model="ir.rule">
-        <field name="name">Ver todas las rutas si tengo acceso completo</field>
-        <field name="model_id" ref="delivery_routes.model_route_route" />
-        <field name="domain_force">
-            [('user_id.access_scope', '=', 'all')]
-        </field>
-        <field name="perm_create" eval="False" />
-        <field name="perm_write" eval="False" />
-        <field name="perm_unlink" eval="True" />
+    <record id="rule_route_assigned_only_design" model="ir.rule">
+        <field name="name">Ver solo diseño de rutas asignadas</field>
+        <field name="model_id" ref="model_route_address" />
+        <field name="domain_force">[('salesperson_ids.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('delivery_routes.group_route_access_assigned'))]" />
+        <field name="perm_create" eval="True" />
         <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_unlink" eval="False" />
+    </record>
+
+    <!-- 🔓 Regla para usuarios con acceso total (ver todas las rutas) -->
+    <record id="rule_route_access_all" model="ir.rule">
+        <field name="name">Ver todas las rutas</field>
+        <field name="model_id" ref="model_route_route" />
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('delivery_routes.group_route_access_all'))]" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_unlink" eval="True" />
+    </record>
+
+    <record id="rule_route_access_all_design" model="ir.rule">
+        <field name="name">Ver todas los diseño de rutas</field>
+        <field name="model_id" ref="model_route_address" />
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('delivery_routes.group_route_access_all'))]" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_unlink" eval="True" />
     </record>
 </odoo>
