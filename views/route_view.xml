@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="route_sale_sequence" model="ir.sequence">
+        <field name="name">Route Sale</field>
+        <field name="code">route.route.sequence</field>
+        <field name="prefix">RS-</field>
+        <field name="padding">5</field>
+        <field name="number_increment">1</field>
+        <field name="implementation">standard</field>
+    </record>
+
+    <record id="view_route_form" model="ir.ui.view">
+        <field name="name">route.route.form</field>
+        <field name="model">route.route</field>
+        <field name="priority" eval="99" />
+        <field name="arch" type="xml">
+            <form string="Ruta de Venta">
+                <header>
+                    <field name="state"
+                        widget="statusbar"
+                        statusbar_visible="start,process,end" />
+                    <!-- <field name="state"
+                        widget="statusbar"
+                        statusbar_visible="start,process,end"
+                        options="{'clickable': '1'}" /> -->
+
+                    <button name="action_start" string="Iniciar" type="object"
+                        class="btn-primary"
+                        invisible="state != 'start'" />
+                    <button name="action_end" string="Finalizar" type="object" class="btn-success"
+                        invisible="state != 'process'" />
+                </header>
+                <sheet>
+                    <group>
+                        <h1>
+                            <field name="name" placeholder="Nombre de la ruta" colspan="4"
+                                readonly="1" />
+                        </h1>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="description" placeholder="Descripción de la ruta"
+                                readonly="1" />
+                            <field name="product" placeholder="Seleccione el producto"
+                                widget="many2many_tags" readonly="1" />
+                        </group>
+                        <group>
+                            <field name="salesperson_ids" widget="many2many_tags"
+                                options="{'no_create': True}" readonly="1"
+                                placeholder="Selecciona los repartidores" />
+                            <field name="warehouse_id" readonly="1" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Direcciones">
+                            <field name="route_address_ids"
+                                readonly="state != 'process'">
+                                <list create="false" delete="false">
+                                    <field name="contact" />
+                                    <field name="address" readonly="1" />
+                                    <field name="status"
+                                        widget="badge"
+                                        decoration-danger="status == 'skipped'"
+                                        decoration-success="status == 'visited'"
+                                        decoration-warning="status == 'pending'" />
+                                    <field name="sale_order_id" widget="many2one" />
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_route_list" model="ir.ui.view">
+        <field name="name">route.route.list</field>
+        <field name="model">route.route</field>
+        <field name="arch" type="xml">
+            <list string="Rutas de Venta"
+                default_order="create_date desc"
+                delete="false">
+                <field name="create_date" string="Fecha de creación" />
+                <field name="name" />
+                <field name="description" optional="hide" />
+                <field name="salesperson_ids" widget="many2many_tags" />
+                <field name="warehouse_id" />
+                <field name="state"
+                    widget="badge"
+                    decoration-warning="state == 'process'"
+                    decoration-success="state == 'end'"
+                    decoration-bf="state == 'start'" />
+
+            </list>
+        </field>
+    </record>
+
+    <record id="action_route" model="ir.actions.act_window">
+        <field name="name">Rutas de Venta</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">route.route</field>
+        <field name="view_mode">list,form</field>
+        <!-- <field name="domain">
+            [
+            ('salesperson_ids.user_id', '=', uid)
+            ]
+        </field> -->
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear Rutas
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="sub_menu_route"
+        name="Rutas de Venta"
+        parent="delivery_routes.main_menu"
+        action="action_route"
+        sequence="8" />
+</odoo>

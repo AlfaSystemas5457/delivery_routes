@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="group_salesperson" model="res.groups">
+            <field name="name">Vendedores</field>
+            <field name="category_id" ref="base.module_category_sales" />
+            <field name="implied_ids" eval="[(4, ref('delivery_routes.route_rule_assigned'))]" />
+        </record>
+
+
+        <record id="group_sales_manager" model="res.groups">
+            <field name="name">Gerentes de ventas</field>
+            <field name="category_id" ref="base.module_category_sales" />
+            <field name="implied_ids" eval="[(4, ref('delivery_routes.route_rule_all'))]" />
+        </record>
+    </data>
+</odoo>
+  

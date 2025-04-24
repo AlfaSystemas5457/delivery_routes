@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <!-- 🔒 Regla para ver solo tus registros y permitir la creación si 'access_scope' es 'assigned' -->
+    <record id="route_rule_assigned" model="ir.rule">
+        <field name="name">Ver y crear solo mis rutas</field>
+        <field name="model_id" ref="delivery_routes.model_route_route" />
+        <field name="domain_force">
+            [('user_id', '=', user.id)]
+        </field>
+        <field name="perm_create" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_unlink" eval="True" />
+        <field name="perm_read" eval="True" />
+    </record>
+
+    <!-- 🔓 Regla para permitir ver todas las rutas si 'access_scope' es 'all' -->
+    <record id="route_rule_all" model="ir.rule">
+        <field name="name">Ver todas las rutas si tengo acceso completo</field>
+        <field name="model_id" ref="delivery_routes.model_route_route" />
+        <field name="domain_force">
+            [('user_id.access_scope', '=', 'all')]
+        </field>
+        <field name="perm_create" eval="False" />
+        <field name="perm_write" eval="False" />
+        <field name="perm_unlink" eval="True" />
+        <field name="perm_read" eval="True" />
+    </record>
+</odoo>
