@@ -28,6 +28,11 @@ class ResUsers(models.Model):
             else:
                 user.groups_id = user.groups_id | group_all
 
+    def create(self, vals_list):
+        users = super().create(vals_list)
+        users._update_groups_based_on_scope()
+        return users
+
     def write(self, vals):
         res = super().write(vals)
         if 'access_scope' in vals:
