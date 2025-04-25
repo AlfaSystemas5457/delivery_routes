@@ -74,7 +74,8 @@
         <field name="arch" type="xml">
             <list string="Rutas de Venta"
                 default_order="create_date desc"
-                delete="false">
+                delete="false"
+                import="false">
                 <field name="create_date" string="Fecha de creación" />
                 <field name="name" />
                 <field name="description" optional="hide" />
