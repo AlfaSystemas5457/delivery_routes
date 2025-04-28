@@ -102,19 +102,6 @@ class Route(models.Model):
             rec.search()
 
 
-class RouteRoute(models.Model):
-    _inherit = 'route.route'
-
-    @api.model
-    def search_read(self, args, offset=0, limit=None, order=None, count=False):
-        self.ensure_one()
-        print('\n\nhola!!!!!!!!!!!!\n\n')
-        if self.env.context.get('default_salesperson_ids'):
-            args.append(('salesperson_ids.user_id', '=',
-                        self.env.context['default_salesperson_ids'][0][2][0]))
-        return super(RouteRoute, self).search_read()(args, offset=offset, limit=limit, order=order, count=count)
-
-
 class RouteSaleAddress(models.Model):
     _name = 'route.sale.address'
     _description = 'Dirección en Venta'
