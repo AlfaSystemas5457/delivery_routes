@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <template id="report_route_ticket_document">
+        <t t-call="web.basic_layout">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="record">
+                    <div class="page mt-0">
+                        <div class="d-flex flex-column justify-content-center">
+                            <h2>Ticket de Ruta</h2>
+                            <p>
+                                <strong>Contacto:</strong>
+                                <t t-esc="record.contact.name" />
+                            </p>
+                            <p>
+                                <strong>Dirección:</strong>
+                                <t t-esc="record.address" />
+                            </p>
+                            <p>
+                                <strong>Ruta:</strong>
+                                <t t-esc="record.route_id.name" />
+                            </p>
+                            <p>
+                                <strong>Estado:</strong>
+                                <t
+                                    t-esc="dict(record.fields_get(allfields=['status'])['status']['selection'])[record.status]" />
+                            </p>
+                        </div>
+
+                        <h4>Productos:</h4>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="record.product_lines" t-as="line">
+                                    <tr>
+                                        <td>
+                                            <t t-esc="line.product_id.name" />
+                                        </td>
+                                        <td>
+                                            <t t-esc="line.quantity" />
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_route_sale_address" model="ir.actions.report">
+        <field name="name">Ticket de Ruta</field>
+        <field name="model">route.sale.address</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">delivery_routes.report_route_ticket_document</field>
+        <field name="report_file">delivery_routes.report_route_ticket_document</field>
+        <field name="paperformat_id" ref="delivery_routes.custom_paperformat_ticket_sale_delivery" />
+        <field name="print_report_name">'%s' % object.sale_order_id</field>
+        <field name="binding_model_id" ref="delivery_routes.model_route_sale_address" />
+        <field name="binding_type">report</field>
+    </record>
+</odoo>
+  

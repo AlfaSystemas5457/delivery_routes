@@ -1,10 +1,13 @@
 from odoo import models, fields, api, exceptions
 from datetime import datetime
+import base64
+import pytz
 
 
 class Route(models.Model):
     _name = 'route.route'
     _description = 'Ruta de venta de los repartidores'
+    _inherit = ['mail.thread']
 
     user_id = fields.Many2one(
         'res.users', string='Responsable', default=lambda self: self.env.user)
@@ -60,7 +63,10 @@ class Route(models.Model):
             6: 'sunday'
         }
 
-        today = DAYS[datetime.today().weekday()]
+        user_tz = self.env.user.tz or 'UTC'
+        local_tz = pytz.timezone(user_tz)
+
+        today = DAYS[datetime.now(local_tz).weekday()]
 
         address = self.env['route.address'].search(
             [
@@ -92,14 +98,17 @@ class Route(models.Model):
 
         return res
 
-    def action_start(self):
+    def action_process(self):
         for rec in self:
             rec.state = 'process'
 
     def action_end(self):
         for rec in self:
             rec.state = 'end'
-            rec.search()
+
+    def action_start(self):
+        for rec in self:
+            rec.state = 'start'
 
 
 class RouteSaleAddress(models.Model):
@@ -125,9 +134,21 @@ class RouteSaleAddress(models.Model):
         ('process', 'En proceso'),
         ('end', 'Finalizado'),
     ], string='Estado', compute="_compute_state")
+    ticket_pdf = fields.Binary(string="Ticket PDF", readonly=True)
 
     def _compute_state(self):
         self.state = self.route_id.state
+
+    def _validations(self):
+        if not self.contact:
+            raise exceptions.UserError("Debes seleccionar un contacto.")
+
+        if not self.route_id.warehouse_id:
+            raise exceptions.UserError(
+                "La ruta no tiene asignado un almacén.")
+
+        if not self.product_lines or sum(line.quantity for line in self.product_lines) <= 0:
+            raise exceptions.UserError("No se asignaron productos.")
 
     def action_load_route_products(self):
         for record in self:
@@ -140,18 +161,30 @@ class RouteSaleAddress(models.Model):
                     }))
                 record.product_lines = product_lines
 
+    def handle_button_ticket(self):
+        self.ensure_one()
+        self.generate_ticket()
+        return self.env.ref('delivery_routes.action_report_route_sale_address').report_action(self)
+
+    def generate_ticket(self):
+        self.ensure_one()
+
+        self._validations()
+
+        report_name = 'delivery_routes.action_report_route_sale_address'
+        report_obj = self.env.ref(report_name)
+
+        pdf_content, content_type = self.env['ir.actions.report']._render_qweb_pdf(
+            report_obj.report_name, [self.id]
+        )
+
+        self.ticket_pdf = base64.b64encode(pdf_content)
+
     def handle_button_sale(self):
+        self.ensure_one()
+        self.generate_ticket()
+
         for record in self:
-            if not record.contact:
-                raise exceptions.UserError("Debes seleccionar un contacto.")
-
-            if not record.route_id.warehouse_id:
-                raise exceptions.UserError(
-                    "La ruta no tiene asignado un almacén.")
-
-            if not record.product_lines or sum(line.quantity for line in record.product_lines) <= 0:
-                raise exceptions.UserError("No se asignaron productos.")
-
             order = self.env['sale.order'].create({
                 'partner_id': record.contact.id,
                 'origin': 'Ruta: %s' % (record.route_id.name or ''),

@@ -19,11 +19,21 @@
                     <field name="state"
                         widget="statusbar"
                         statusbar_visible="start,process,end" />
-                    <button name="action_start" string="Iniciar" type="object"
+                    <button name="action_process"
+                        string="Iniciar"
+                        type="object"
                         class="btn-primary"
                         invisible="state != 'start'" />
-                    <button name="action_end" string="Finalizar" type="object" class="btn-success"
+                    <button name="action_end"
+                        string="Finalizar"
+                        type="object"
+                        class="btn-success"
                         invisible="state != 'process'" />
+                    <button name="action_start"
+                        string="Regresar a inicio"
+                        type="object"
+                        class="btn-secondary"
+                        groups="delivery_routes.group_route_access_all" />
                 </header>
                 <sheet>
                     <group>
@@ -64,6 +74,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <!-- <chatter /> -->
             </form>
         </field>
     </record>

@@ -11,12 +11,14 @@
     'category': 'Uncategorized',
     'version': '0.1',
 
-    'depends': ['base', 'stock', 'hr', 'sale'],
+    'depends': ['base', 'stock', 'hr', 'sale', 'mail'],
 
     'data': [
         'security/ir.model.access.csv',
         'security/groups_security.xml',
         'security/route_security.xml',
+        'report/paperformat.xml',
+        'report/report.xml',
         'views/res_users_views.xml',
         'views/menu_views.xml',
         'views/route_sale_address_view.xml',

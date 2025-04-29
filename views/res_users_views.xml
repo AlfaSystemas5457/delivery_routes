@@ -5,8 +5,10 @@
         <field name="model">res.users</field>
         <field name="inherit_id" ref="base.view_users_form" />
         <field name="arch" type="xml">
-            <xpath expr="//group/field[@name='partner_id']" position="after">
-                <field name="access_scope" />
+            <xpath expr="//page[@name='access_rights']/group[2]" position="after">
+                <group string="Accesos a la gestión de rutas">
+                    <field name="access_scope" />
+                </group>
             </xpath>
         </field>
     </record>

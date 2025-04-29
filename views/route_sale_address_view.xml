@@ -8,15 +8,21 @@
                 <sheet>
                     <group>
                         <h1>
-                            <field name="contact" placeholder="Contacto" colspan="4" readonly="1" />
+                            <field name="contact"
+                                placeholder="Contacto"
+                                colspan="4"
+                                readonly="1"
+                                class="border-bottom" />
                         </h1>
                     </group>
                     <group>
                         <group>
-                            <field name="address" placeholder="Descripción de la ruta" readonly="1" />
+                            <field name="address" placeholder="Descripción de la ruta" readonly="1"
+                                colspan="4" />
+                            <field name="status" />
                         </group>
                         <group>
-                            <field name="status" />
+                            <field name="ticket_pdf" widget="pdf_viewer" />
                         </group>
                     </group>
                     <group>
@@ -35,6 +41,12 @@
                         class="btn-primary"
                         invisible="status != 'visited' or state != 'process'"
                         icon="fa-file-text-o" />
+                    <button name="handle_button_ticket"
+                        string="Imprimir ticket"
+                        type="object"
+                        class="btn-primary"
+                        invisible="status != 'visited' or state != 'process'"
+                        icon="fa-print" />
                     <button
                         string="Guardar"
                         type="object"
