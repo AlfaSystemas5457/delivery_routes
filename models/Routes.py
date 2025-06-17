@@ -70,7 +70,7 @@ class Route(models.Model):
         address = self.env['route.address'].search(
             [
                 ('dates', '=', today),
-                ('salesperson_ids.user_id', '=', self.env.user.id)
+                ('salesperson_ids.id', '=', self.env.user.id)
             ],
             order="create_date desc",
             limit=1
@@ -297,7 +297,7 @@ class Address(models.Model):
 
         employee = self.env['res.users'].search(
             [
-                ('user_id', '=', partner.id)
+                ('id', '=', partner.id)
             ], limit=1
         )
 

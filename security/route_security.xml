@@ -4,7 +4,7 @@
     <record id="rule_route_assigned_only" model="ir.rule">
         <field name="name">Ver solo rutas asignadas</field>
         <field name="model_id" ref="model_route_route" />
-        <field name="domain_force">[('salesperson_ids.user_id', '=', user.id)]</field>
+        <field name="domain_force">[('salesperson_ids.id', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('delivery_routes.group_route_access_assigned'))]" />
         <field name="perm_create" eval="True" />
         <field name="perm_read" eval="True" />
@@ -15,7 +15,7 @@
     <record id="rule_route_assigned_only_design" model="ir.rule">
         <field name="name">Ver solo diseño de rutas asignadas</field>
         <field name="model_id" ref="model_route_address" />
-        <field name="domain_force">[('salesperson_ids.user_id', '=', user.id)]</field>
+        <field name="domain_force">[('salesperson_ids.id', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('delivery_routes.group_route_access_assigned'))]" />
         <field name="perm_create" eval="True" />
         <field name="perm_read" eval="True" />
