@@ -1,5 +1,5 @@
 from odoo import models, fields, api, exceptions
-from datetime import datetime
+from datetime import datetime, date
 import base64
 import pytz
 
@@ -10,33 +10,32 @@ class Route(models.Model):
     _inherit = ['mail.thread']
 
     user_id = fields.Many2one(
-        'res.users', string='Responsable', default=lambda self: self.env.user)
+        'res.users', string='Responsable', default=lambda self: self.env.user, tracking=True)
     name = fields.Char(
         string='Nombre de la Ruta',
         required=True,
-        default='Borrador')
-    salesperson_ids = fields.Many2many('hr.employee', string='Repartidores')
+        default='Borrador',
+        tracking=True)
+    salesperson_ids = fields.Many2many(
+        'res.users', string='Repartidores', tracking=True)
     product = fields.Many2many(
-        'product.product', string='Productos')
-    description = fields.Text(string='Descripción')
-    address = fields.Char(string='Primera Dirección')
+        'product.product', string='Productos', tracking=True)
+    description = fields.Text(string='Descripción', tracking=True)
+    address = fields.Char(string='Primera Dirección', tracking=True)
     route_address_ids = fields.One2many(
         'route.sale.address',
         'route_id',
-        string='Direcciones')
+        string='Direcciones', tracking=True)
     warehouse_id = fields.Many2one(
-        'stock.warehouse', string='Almacenes', ondelete='cascade')
+        'stock.warehouse', string='Almacenes', ondelete='cascade', tracking=True)
     state = fields.Selection([
         ('start', 'Sin empezar'),
         ('process', 'En proceso'),
         ('end', 'Finalizado'),
-    ], string='Estado', default='start')
+    ], string='Estado', default='start', tracking=True)
 
     @api.model
     def create(self, vals):
-        if self.env.user.access_scope != 'assigned':
-            raise exceptions.AccessError("No tienes permiso para crear rutas.")
-
         if not vals.get('name'):
             vals['name'] = self.env['ir.sequence'].next_by_code(
                 'route.route.sequence')
@@ -128,12 +127,12 @@ class RouteSaleAddress(models.Model):
         ('pending', 'Pendiente'),
         ('visited', 'Visitado con pedido'),
         ('skipped', 'Visitado sin pedido'),
-    ], string='Estado', default='pending', required=True)
+    ], string='Estado de la visita', default='pending', required=True)
     state = fields.Selection([
         ('start', 'Sin empezar'),
         ('process', 'En proceso'),
         ('end', 'Finalizado'),
-    ], string='Estado', compute="_compute_state")
+    ], string='Estado de la Ruta', compute="_compute_state")
     ticket_pdf = fields.Binary(string="Ticket PDF", readonly=True)
 
     def _compute_state(self):
@@ -260,17 +259,26 @@ class RouteSaleProductLine(models.Model):
 class Address(models.Model):
     _name = 'route.address'
     _description = 'Dirección de visita'
+    _inherit = ['mail.thread']
 
-    name = fields.Char(string='Nombre de la Ruta', required=True)
-    description = fields.Text(string='Descripción')
+    name = fields.Char(string='Nombre de la Ruta',
+                       required=True, tracking=True)
+    description = fields.Text(string='Descripción', tracking=True)
     salesperson_ids = fields.Many2many(
-        'hr.employee', string='Repartidores', ondelete='cascade', required=True)
+        'res.users', string='Repartidores', ondelete='cascade', required=True, tracking=True)
     product = fields.Many2many(
-        'product.product', string='Productos', required=True)
+        'product.product', string='Productos', required=True, tracking=True)
     warehouse_id = fields.Many2one(
-        'stock.warehouse', string='Almacenes', ondelete='cascade', required=True)
+        'stock.warehouse', string='Almacenes', ondelete='cascade', required=True, tracking=True)
     route_address_ids = fields.Many2many(
-        'res.partner', ondelete='cascade', string='Direcciones', required=True)
+        'res.partner',
+        relation='route_address_partner_rel',
+        ondelete='cascade',
+        string='Direcciones',
+        required=True,
+        tracking=True,
+        domain="[('user_id', 'in', salesperson_ids)]"
+    )
     dates = fields.Selection([
         ('monday', 'Lunes'),
         ('tuesday', 'Martes'),
@@ -279,14 +287,19 @@ class Address(models.Model):
         ('friday', 'Viernes'),
         ('saturday', 'Sábado'),
         ('sunday', 'Domingo'),
-    ], string='Día', required=True)
+    ], string='Día', required=True, tracking=True)
 
     @api.model
     def default_get(self, fields):
         res = super().default_get(fields)
 
-        employee = self.env['hr.employee'].search(
-            [('user_id', '=', self.env.user.id)], limit=1)
+        partner = self.env.user
+
+        employee = self.env['res.users'].search(
+            [
+                ('user_id', '=', partner.id)
+            ], limit=1
+        )
 
         if employee:
             res['salesperson_ids'] = [(6, 0, [employee.id])]

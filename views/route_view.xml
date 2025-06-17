@@ -74,7 +74,7 @@
                         </page>
                     </notebook>
                 </sheet>
-                <!-- <chatter /> -->
+                <chatter />
             </form>
         </field>
     </record>
@@ -92,7 +92,6 @@
                 <field name="description" optional="hide" />
                 <field name="salesperson_ids" widget="many2many_tags" />
                 <field name="warehouse_id" />
-                <field name="name" />
                 <field name="state"
                     widget="badge"
                     decoration-warning="state == 'process'"

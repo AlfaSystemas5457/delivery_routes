@@ -28,7 +28,18 @@ class ResUsers(models.Model):
             else:
                 user.groups_id = user.groups_id | group_all
 
+    def _update_users_access_scope(self):
+        users = self.search([])
+        for user in users:
+            if user.access_scope == 'assigned':
+                user._update_groups_based_on_scope()
+
+    @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if 'access_scope' not in vals:
+                vals['access_scope'] = 'assigned'
+
         users = super().create(vals_list)
         users._update_groups_based_on_scope()
         return users

@@ -17,36 +17,48 @@
                     </group>
                     <group>
                         <group>
-                            <field name="address" placeholder="Descripción de la ruta" readonly="1"
-                                colspan="4" />
+                            <div class="mb-2 border-bottom">
+                                <field name="address" placeholder="Descripción de la ruta"
+                                    readonly="1" colspan="4" />
+                            </div>
                             <field name="status" />
+                            <notebook>
+                                <page string="Productos">
+                                    <field name="product_lines">
+                                        <list editable="bottom">
+                                            <field name="product_id" />
+                                            <field name="quantity" sum="Total" />
+                                        </list>
+                                    </field>
+                                </page>
+                            </notebook>
                         </group>
-                        <group>
-                            <field name="ticket_pdf" widget="pdf_viewer" />
+                        <group invisible="not ticket_pdf">
+                            <div class="oe_span6">
+                                <field name="ticket_pdf" widget="pdf_viewer" />
+                            </div>
                         </group>
-                    </group>
-                    <group>
-                        <field name="product_lines">
-                            <list editable="bottom">
-                                <field name="product_id" />
-                                <field name="quantity" sum="Total" />
-                            </list>
-                        </field>
+                        <group invisible="ticket_pdf">
+                            <div class="oe_span12 text-center items-center">
+                                <p class="o_view_nocontent_smiling_face">No hay tickets asignados.</p>
+                            </div>
+                        </group>
                     </group>
                 </sheet>
+                <chatter />
                 <footer>
-                    <button name="handle_button_sale"
-                        string="Generar cotización"
-                        type="object"
-                        class="btn-primary"
-                        invisible="status != 'visited' or state != 'process'"
-                        icon="fa-file-text-o" />
                     <button name="handle_button_ticket"
                         string="Imprimir ticket"
                         type="object"
                         class="btn-primary"
                         invisible="status != 'visited' or state != 'process'"
                         icon="fa-print" />
+                    <button name="handle_button_sale"
+                        string="Generar cotización"
+                        type="object"
+                        class="btn-primary"
+                        invisible="status != 'visited' or state != 'process'"
+                        icon="fa-file-text-o" />
                     <button
                         string="Guardar"
                         type="object"

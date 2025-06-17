@@ -25,6 +25,7 @@
         'views/route_view.xml',
         'views/address_view.xml',
     ],
+    'post_init_hook': 'post_init_hook',
     'installable': True,
     'application': True,
     'sequence': 0,
