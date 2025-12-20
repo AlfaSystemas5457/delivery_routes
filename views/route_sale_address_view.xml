@@ -1,9 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-    <record id="view_route_form_sale_address" model="ir.ui.view">
+    <record id="view_route_form_sale_address"
+        model="ir.ui.view">
         <field name="name">route.sale.address.form</field>
         <field name="model">route.sale.address</field>
-        <field name="arch" type="xml">
+        <field name="arch"
+            type="xml">
             <form string="Ruta de Venta">
                 <sheet>
                     <group>
@@ -18,8 +20,10 @@
                     <group>
                         <group>
                             <div class="mb-2 border-bottom">
-                                <field name="address" placeholder="Descripción de la ruta"
-                                    readonly="1" colspan="4" />
+                                <field name="address"
+                                    placeholder="Descripción de la ruta"
+                                    readonly="1"
+                                    colspan="4" />
                             </div>
                             <field name="status" />
                             <notebook>
@@ -27,7 +31,8 @@
                                     <field name="product_lines">
                                         <list editable="bottom">
                                             <field name="product_id" />
-                                            <field name="quantity" sum="Total" />
+                                            <field name="quantity"
+                                                sum="Total" />
                                         </list>
                                     </field>
                                 </page>
@@ -35,7 +40,8 @@
                         </group>
                         <group invisible="not ticket_pdf">
                             <div class="oe_span6">
-                                <field name="ticket_pdf" widget="pdf_viewer" />
+                                <field name="ticket_pdf"
+                                    widget="pdf_viewer" />
                             </div>
                         </group>
                         <group invisible="ticket_pdf">
@@ -51,7 +57,7 @@
                         string="Imprimir ticket"
                         type="object"
                         class="btn-primary"
-                        invisible="status != 'visited' or state != 'process'"
+                        invisible="status != 'visited' or state != 'process' or sale_order_id == False"
                         icon="fa-print" />
                     <button name="handle_button_sale"
                         string="Generar cotización"
@@ -59,8 +65,7 @@
                         class="btn-primary"
                         invisible="status != 'visited' or state != 'process'"
                         icon="fa-file-text-o" />
-                    <button
-                        string="Guardar"
+                    <button string="Guardar"
                         type="object"
                         special="save"
                         class="btn-secondary"

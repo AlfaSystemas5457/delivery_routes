@@ -3,27 +3,31 @@
     <template id="report_route_ticket_document">
         <t t-call="web.basic_layout">
             <t t-call="web.html_container">
-                <t t-foreach="docs" t-as="record">
-                    <div class="page mt-0">
+                <t t-foreach="docs"
+                    t-as="record">
+                    <div class="page mt-2">
                         <div class="d-flex flex-column justify-content-center">
-                            <h2>Ticket de Ruta</h2>
-                            <p>
+                            <h2 class="text-center">Ticket de Ruta</h2>
+                            <span t-if="record.contact">
                                 <strong>Contacto:</strong>
                                 <t t-esc="record.contact.name" />
-                            </p>
-                            <p>
+                                <br/>
+                            </span>
+                            <span t-if="record.address">
                                 <strong>Dirección:</strong>
                                 <t t-esc="record.address" />
-                            </p>
-                            <p>
+                                <br/>
+                            </span>
+                            <span t-if="record.route_id">
                                 <strong>Ruta:</strong>
                                 <t t-esc="record.route_id.name" />
-                            </p>
-                            <p>
+                                <br/>
+                            </span>
+                            <span>
                                 <strong>Estado:</strong>
-                                <t
-                                    t-esc="dict(record.fields_get(allfields=['status'])['status']['selection'])[record.status]" />
-                            </p>
+                                <t t-esc="dict(record.fields_get(allfields=['status'])['status']['selection'])[record.status]" />
+                                <br/>
+                            </span>
                         </div>
 
                         <h4>Productos:</h4>
@@ -35,7 +39,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="record.product_lines" t-as="line">
+                                <t t-foreach="record.product_lines"
+                                    t-as="line">
                                     <tr>
                                         <td>
                                             <t t-esc="line.product_id.name" />
@@ -47,21 +52,26 @@
                                 </t>
                             </tbody>
                         </table>
+                        <br/>
+                        <br/>
                     </div>
                 </t>
             </t>
         </t>
     </template>
 
-    <record id="action_report_route_sale_address" model="ir.actions.report">
+    <record id="action_report_route_sale_address"
+        model="ir.actions.report">
         <field name="name">Ticket de Ruta</field>
         <field name="model">route.sale.address</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">delivery_routes.report_route_ticket_document</field>
         <field name="report_file">delivery_routes.report_route_ticket_document</field>
-        <field name="paperformat_id" ref="delivery_routes.custom_paperformat_ticket_sale_delivery" />
-        <field name="print_report_name">'%s' % object.sale_order_id</field>
-        <field name="binding_model_id" ref="delivery_routes.model_route_sale_address" />
+        <field name="paperformat_id"
+            ref="delivery_routes.custom_paperformat_ticket_sale_delivery" />
+        <field name="print_report_name">'Ticket %s' % object.sale_order_id.display_name</field>
+        <field name="binding_model_id"
+            ref="delivery_routes.model_route_sale_address" />
         <field name="binding_type">report</field>
     </record>
 </odoo>
