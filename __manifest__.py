@@ -1,32 +1,34 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Rutas de entrega",
-
-    'summary': "Modulo de rutas de entrega",
-
-    'description': """Modulo de rutas de entrega""",
-
-    'author': "DGV",
-    'website': "https://github.com/AlfaSystemas5457/delivery_routes",
-    'category': 'Uncategorized',
-    'version': '0.1',
-
-    'depends': ['base', 'stock', 'hr', 'sale', 'mail'],
-
-    'data': [
-        'security/ir.model.access.csv',
-        'security/groups_security.xml',
-        'security/route_security.xml',
-        'report/paperformat.xml',
-        'report/report.xml',
-        'views/res_users_views.xml',
-        'views/menu_views.xml',
-        'views/route_sale_address_view.xml',
-        'views/route_view.xml',
-        'views/address_view.xml',
+    "name": "Rutas de entrega",
+    "summary": "Modulo de rutas de entrega",
+    "description": """Modulo de rutas de entrega""",
+    "author": "DGV",
+    "website": "https://github.com/AlfaSystemas5457/delivery_routes",
+    "category": "Uncategorized",
+    "version": "0.1",
+    "depends": ["base", "stock", "hr", "sale", "mail", "web"],
+    "data": [
+        "security/ir.model.access.csv",
+        "security/groups_security.xml",
+        "security/route_security.xml",
+        "report/paperformat.xml",
+        "report/report.xml",
+        "views/res_users_views.xml",
+        "views/menu_views.xml",
+        "views/route_sale_address_view.xml",
+        "views/route_view.xml",
+        "views/address_view.xml",
+        "views/stock_picking_signature.xml",
+        "views/res_partner_view.xml",
     ],
-    'post_init_hook': 'post_init_hook',
-    'installable': True,
-    'application': True,
-    'sequence': 0,
+    "assets": {
+        "web.assets_backend": [
+            "delivery_routes/static/src/**/*.xml",
+        ],
+    },
+    "post_init_hook": "post_init_hook",
+    "installable": True,
+    "application": True,
+    "sequence": 0,
 }

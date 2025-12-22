@@ -1,28 +1,37 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-    <record id="view_address_form_address" model="ir.ui.view">
+    <record id="view_address_form_address"
+        model="ir.ui.view">
         <field name="name">route.address.form</field>
         <field name="model">route.address</field>
-        <field name="arch" type="xml">
+        <field name="arch"
+            type="xml">
             <form string="Dirección de Visita">
                 <sheet>
                     <group>
                         <h1>
-                            <field name="name" placeholder="Nombre de la ruta" colspan="4" />
+                            <field name="name"
+                                placeholder="Nombre de la ruta"
+                                colspan="4" />
                         </h1>
                     </group>
                     <group>
                         <group>
-                            <field name="description" placeholder="Descripción de la ruta" />
-                            <field name="product" placeholder="Seleccione el producto"
+                            <field name="description"
+                                placeholder="Descripción de la ruta" />
+                            <field name="product"
+                                placeholder="Seleccione el producto"
                                 widget="many2many_tags" />
                         </group>
                         <group>
-                            <field name="salesperson_ids" widget="many2many_tags"
+                            <field name="salesperson_ids"
+                                widget="many2many_tags"
                                 options="{'no_create': True}"
                                 placeholder="Selecciona los repartidores" />
-                            <field name="warehouse_id" placeholder="Seleccione un almacen" />
-                            <field name="dates" placeholder="Seleccione un dia" />
+                            <field name="warehouse_id"
+                                placeholder="Seleccione un almacen" />
+                            <field name="dates"
+                                placeholder="Seleccione un dia" />
                         </group>
                     </group>
                     <notebook>
@@ -31,6 +40,12 @@
                                 <list>
                                     <field name="display_name" />
                                     <field name="contact_address" />
+                                    <button name="open_map"
+                                        type="object"
+                                        class="oe_stat_button"
+                                        string="Ver en el mapa"
+                                        icon="fa-map">
+                                    </button>
                                 </list>
                             </field>
                         </page>
@@ -41,34 +56,43 @@
         </field>
     </record>
 
-    <record id="view_address_list" model="ir.ui.view">
+    <record id="view_address_list"
+        model="ir.ui.view">
         <field name="name">route.address.list</field>
         <field name="model">route.address</field>
-        <field name="arch" type="xml">
-            <list string="Direcciones de Visita" default_order="create_date desc">
-                <field name="create_date" string="Fecha de creación" />
+        <field name="arch"
+            type="xml">
+            <list string="Direcciones de Visita"
+                default_order="create_date desc">
+                <field name="create_date"
+                    string="Fecha de creación" />
                 <field name="name" />
-                <field name="description" optional="hide" />
-                <field name="salesperson_ids" widget="many2many_tags" />
-                <field name="warehouse_id" optional="show" />
-                <field name="dates" optional="show" />
+                <field name="description"
+                    optional="hide" />
+                <field name="salesperson_ids"
+                    widget="many2many_tags" />
+                <field name="warehouse_id"
+                    optional="show" />
+                <field name="dates"
+                    optional="show" />
             </list>
         </field>
     </record>
 
-    <record id="action_route_address" model="ir.actions.act_window">
+    <record id="action_route_address"
+        model="ir.actions.act_window">
         <field name="name">Diseño de rutas</field>
         <field name="res_model">route.address</field>
         <field name="view_mode">list,form</field>
-        <field name="help" type="html">
+        <field name="help"
+            type="html">
             <p class="o_view_nocontent_smiling_face">
                 Agregar direcciones
             </p>
         </field>
     </record>
 
-    <menuitem
-        id="sub_menu_address"
+    <menuitem id="sub_menu_address"
         name="Diseño de rutas"
         parent="delivery_routes.main_menu"
         action="action_route_address"

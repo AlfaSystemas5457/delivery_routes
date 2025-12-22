@@ -23,6 +23,11 @@
                                 <t t-esc="record.route_id.name" />
                                 <br/>
                             </span>
+                            <span t-if="record.sale_order_id">
+                                <strong>Venta:</strong>
+                                <t t-esc="record.sale_order_id.display_name" />
+                                <br/>
+                            </span>
                             <span>
                                 <strong>Estado:</strong>
                                 <t t-esc="dict(record.fields_get(allfields=['status'])['status']['selection'])[record.status]" />
@@ -52,6 +57,7 @@
                                 </t>
                             </tbody>
                         </table>
+
                         <br/>
                         <br/>
                     </div>
