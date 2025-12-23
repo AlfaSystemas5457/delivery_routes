@@ -21,6 +21,7 @@
         "views/address_view.xml",
         "views/stock_picking_signature.xml",
         "views/res_partner_view.xml",
+        "views/stock_report_delivery_document.xml",
     ],
     "assets": {
         "web.assets_backend": [

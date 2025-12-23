@@ -8,22 +8,28 @@
             ref="stock.view_picking_form"/>
         <field name="arch"
             type="xml">
-            <xpath expr="//field[@name='partner_id']"
+            <xpath expr="//field[@name='move_ids_without_package']"
                 position="after">
-                <field name="signature_date"
-                    widget="datetime"
-                    readonly="1"
-                    invisible="picking_type_code != 'outgoing'"/>
-
-                <div class="oe_button_box">
-                    <label for="customer_signature">Customer Signature</label>
-                    <div>
-                        <field name="customer_signature"
-                            widget="signature"
-                            readonly="state != 'assigned'"
+                <group>
+                    <group>
+                        <field name="signature_date"
+                            widget="datetime"
+                            readonly="1"
                             invisible="picking_type_code != 'outgoing'"/>
-                    </div>
-                </div>
+                    </group>
+
+                    <group>
+                        <div class="oe_button_box">
+                            <label for="customer_signature"/>
+                            <div class="w-50">
+                                <field name="customer_signature"
+                                    widget="signature"
+                                    readonly="state != 'assigned'"
+                                    invisible="picking_type_code != 'outgoing'"/>
+                            </div>
+                        </div>
+                    </group>
+                </group>
             </xpath>
         </field>
     </record>

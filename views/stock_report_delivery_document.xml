@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_delivery_document"
+        name="template_name"
+        inherit_id="stock.report_delivery_document">
+        <xpath expr="//div[@class='page']"
+            position="after">
+            <div class="w-100 mt16 mb16 d-flex justify-content-end">
+                <img t-if="o.customer_signature"
+                    t-att-src="image_data_uri(o.customer_signature)"
+                    class="img img-fluid"
+                    style="max-width: 400px;"/>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="report_picking"
+        name="template_name"
+        inherit_id="stock.report_picking">
+        <xpath expr="//div[@class='page o_report_stockpicking_operations']"
+            position="after">
+            <div class="w-100 mt16 mb16 d-flex justify-content-end">
+                <img t-if="o.customer_signature"
+                    t-att-src="image_data_uri(o.customer_signature)"
+                    class="img img-fluid"
+                    style="max-width: 400px;"/>
+            </div>
+        </xpath>
+    </template>
+</odoo>

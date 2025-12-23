@@ -9,7 +9,7 @@ class ResPartner(models.Model):
         lat = self.partner_latitude or 0
         lng = self.partner_longitude or 0
 
-        if lat == 0 and lng == 0:
+        if lat == 0 or lng == 0:
             return {
                 "type": "ir.actions.client",
                 "tag": "display_notification",
