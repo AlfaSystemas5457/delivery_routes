@@ -23,11 +23,6 @@
         "views/res_partner_view.xml",
         "views/stock_report_delivery_document.xml",
     ],
-    "assets": {
-        "web.assets_backend": [
-            "delivery_routes/static/src/**/*.xml",
-        ],
-    },
     "post_init_hook": "post_init_hook",
     "installable": True,
     "application": True,

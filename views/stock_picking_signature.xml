@@ -19,15 +19,10 @@
                     </group>
 
                     <group>
-                        <div class="oe_button_box">
-                            <label for="customer_signature"/>
-                            <div class="w-50">
-                                <field name="customer_signature"
-                                    widget="signature"
-                                    readonly="state != 'assigned'"
-                                    invisible="picking_type_code != 'outgoing'"/>
-                            </div>
-                        </div>
+                        <field name="customer_signature"
+                            widget="signature"
+                            readonly="state != 'assigned'"
+                            invisible="picking_type_code != 'outgoing'"/>
                     </group>
                 </group>
             </xpath>
