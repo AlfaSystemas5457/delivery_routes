@@ -82,6 +82,7 @@
     <record id="action_route_address"
         model="ir.actions.act_window">
         <field name="name">Diseño de rutas</field>
+        <field name="path">address</field>
         <field name="res_model">route.address</field>
         <field name="view_mode">list,form</field>
         <field name="help"
