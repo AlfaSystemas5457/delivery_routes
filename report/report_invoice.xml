@@ -27,7 +27,7 @@
                             <thead>
                                 <tr>
                                     <th>Producto</th>
-                                    <th>Demanda</th>
+                                    <th>Cantidad</th>
                                     <th>Precio</th>
                                 </tr>
                             </thead>
