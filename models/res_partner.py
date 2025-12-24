@@ -3,6 +3,9 @@ from odoo import fields, models, api
 
 class ResPartner(models.Model):
     _inherit = "res.partner"
+    _order = "sequence ASC, complete_name ASC, id DESC"
+
+    sequence = fields.Integer(string="Order", default=10)
 
     def open_map(self):
         self.ensure_one()

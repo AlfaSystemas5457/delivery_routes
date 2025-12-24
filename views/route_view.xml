@@ -84,6 +84,11 @@
                                         decoration-warning="status == 'pending'" />
                                     <field name="sale_order_id"
                                         widget="many2one" />
+                                    <button name="open_map"
+                                        type="object"
+                                        class="oe_stat_button"
+                                        string="Ver en el mapa"
+                                        icon="fa-map"/>
                                 </list>
                             </field>
                         </page>

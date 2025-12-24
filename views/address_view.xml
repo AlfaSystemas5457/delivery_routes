@@ -38,14 +38,15 @@
                         <page string="Direcciones">
                             <field name="route_address_ids">
                                 <list>
+                                    <field name="sequence"
+                                        widget="handle"/>
                                     <field name="display_name" />
-                                    <field name="contact_address" />
+                                    <field name="contact_address"/>
                                     <button name="open_map"
                                         type="object"
                                         class="oe_stat_button"
                                         string="Ver en el mapa"
-                                        icon="fa-map">
-                                    </button>
+                                        icon="fa-map"/>
                                 </list>
                             </field>
                         </page>
