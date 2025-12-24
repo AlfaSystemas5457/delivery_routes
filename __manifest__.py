@@ -8,7 +8,7 @@
     "license": "LGPL-3",
     "category": "Warehouse Management",
     "version": "0.1",
-    "depends": ["base", "stock", "hr", "sale", "mail", "web"],
+    "depends": ["base", "stock", "hr", "sale", "mail", "web", "account"],
     "data": [
         "security/ir.model.access.csv",
         "security/groups_security.xml",
@@ -16,7 +16,9 @@
         "report/paperformat.xml",
         "report/report.xml",
         "report/report_delivery.xml",
+        "report/report_invoice.xml",
         "views/view_picking.xml",
+        "views/account_move_view.xml",
         "views/res_users_views.xml",
         "views/menu_views.xml",
         "views/route_sale_address_view.xml",
