@@ -20,3 +20,13 @@ class StockPicking(models.Model):
 
             picking.signature_date = fields.Datetime.now()
             return super(StockPicking, self).button_validate()
+
+    def do_print_ticket(self):
+        picking_operations_report_ticket = self.env.ref(
+            "delivery_routes.action_report_route_sale_delivery_ticket",
+            raise_if_not_found=False,
+        )
+        if not picking_operations_report_ticket:
+            raise UserError("No se pudo generar el ticket de entrega.")
+
+        return picking_operations_report_ticket.report_action(self)

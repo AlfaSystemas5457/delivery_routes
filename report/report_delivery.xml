@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <template id="report_route_ticket_delivery">
+        <t t-call="web.basic_layout">
+            <t t-call="web.html_container">
+                <t t-foreach="docs"
+                    t-as="record">
+                    <div class="page mt-2">
+                        <div class="d-flex flex-column justify-content-center">
+                            <h2 class="text-center">Ticket de entrega</h2>
+                            <div t-if="record.partner_id">
+                                <strong>Contacto:</strong>
+                                <t t-esc="record.partner_id.name" />
+                            </div>
+                            <div t-if="record.partner_id">
+                                <strong>Dirección:</strong>
+                                <span t-out="', '.join(filter(None, [record.partner_id.street, record.partner_id.street2, record.partner_id.city]))"/>
+                                <span t-if="record.partner_id.state_id"
+                                    t-out="' %s %s' % (record.partner_id.state_id.name, record.partner_id.country_id.name)"/>
+                                <span t-if="record.partner_id.zip"
+                                    t-field="record.partner_id.zip"/>
+                            </div>
+                        </div>
+
+                        <h4>Productos:</h4>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Demanda</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="record.move_ids_without_package"
+                                    t-as="line">
+                                    <tr>
+                                        <td>
+                                            <t t-esc="line.product_id.name" />
+                                        </td>
+                                        <td>
+                                            <t t-esc="line.product_uom_qty" />
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div class="w-100 mt16 mb16 d-flex flex-column justify-content-center text-muted"
+                            t-if="record.customer_signature">
+                            <img t-att-src="image_data_uri(record.customer_signature)"
+                                class="img img-fluid"
+                                style="max-width: 200px;"/>
+                            <div class="text-center mt8 border-top">
+                                <span>Firma del cliente</span>
+                            </div>
+                        </div>
+
+                        <br/>
+                        <br/>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_route_sale_delivery_ticket"
+        model="ir.actions.report">
+        <field name="name">Ticket entrega</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">delivery_routes.report_route_ticket_delivery</field>
+        <field name="report_file">delivery_routes.report_route_ticket_delivery</field>
+        <field name="paperformat_id"
+            ref="delivery_routes.custom_paperformat_ticket_sale_delivery" />
+        <field name="print_report_name">'Ticket de entrega %s' % object.display_name</field>
+        <field name="binding_model_id"
+            ref="stock.model_stock_picking" />
+        <field name="binding_type">report</field>
+    </record>
+</odoo>
+  

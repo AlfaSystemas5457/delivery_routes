@@ -5,7 +5,8 @@
     "description": """Modulo de rutas de entrega""",
     "author": "DGV",
     "website": "https://github.com/AlfaSystemas5457/delivery_routes",
-    "category": "Uncategorized",
+    "license": "LGPL-3",
+    "category": "Warehouse Management",
     "version": "0.1",
     "depends": ["base", "stock", "hr", "sale", "mail", "web"],
     "data": [
@@ -14,6 +15,8 @@
         "security/route_security.xml",
         "report/paperformat.xml",
         "report/report.xml",
+        "report/report_delivery.xml",
+        "views/view_picking.xml",
         "views/res_users_views.xml",
         "views/menu_views.xml",
         "views/route_sale_address_view.xml",
