@@ -45,12 +45,12 @@
                             </tbody>
                         </table>
 
-                        <div class="w-100 mt16 mb16 d-flex flex-column justify-content-center text-muted"
+                        <div class="w-100 mt16 mb16 d-flex flex-column justify-content-center align-items-center text-muted"
                             t-if="record.customer_signature">
                             <img t-att-src="image_data_uri(record.customer_signature)"
                                 class="img img-fluid"
                                 style="max-width: 200px;"/>
-                            <div class="text-center mt8 border-top">
+                            <div class="text-center mt8 border-top w-100">
                                 <span>Firma del cliente</span>
                             </div>
                         </div>

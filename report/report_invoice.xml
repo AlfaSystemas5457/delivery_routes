@@ -42,7 +42,7 @@
                                             <t t-esc="line.quantity" />
                                         </td>
                                         <td>
-                                            <t t-esc="line.price_subtotal" />
+                                            <t t-esc="line.price_unit" />
                                         </td>
                                     </tr>
                                 </t>
@@ -59,8 +59,8 @@
                             <t t-esc="record.amount_total" />
                         </div>
 
-                        <t t-if="status_in_payment == 'paid'">
-                            <h4 class="text-success">Factura pagada</h4>
+                        <t t-if="record.status_in_payment == 'paid'">
+                            <h5 class="text-muted text-center">Factura pagada</h5>
                         </t>
 
                         <br/>
