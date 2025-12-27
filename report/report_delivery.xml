@@ -22,15 +22,11 @@
                                     t-field="record.partner_id.zip"/>
                             </div>
                             <div t-if="record.sale_id.user_id">
-                                <h3 class="w-100 m-0">
-                                    <strong>Agente:</strong>
-                                </h3>
+                                <h3 class="w-100 m-0">Agente:</h3>
                                 <span t-esc="record.sale_id.user_id.name" />
                             </div>
                             <div t-if="record.date_done">
-                                <h3 class="w-100 m-0">
-                                    <strong>Fecha de entrega:</strong>
-                                </h3>
+                                <h3 class="w-100 m-0">Fecha de entrega:</h3>
                                 <span t-esc="record.date_done" />
                             </div>
                         </div>
