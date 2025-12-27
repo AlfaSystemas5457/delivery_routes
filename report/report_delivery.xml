@@ -8,37 +8,49 @@
                     <div class="page mt-2">
                         <div class="d-flex flex-column justify-content-center">
                             <h2 class="text-center">Ticket de entrega</h2>
+                            <h3 class="w-100 m-0">Datos del cliente</h3>
                             <div t-if="record.partner_id">
-                                <strong>Contacto:</strong>
-                                <t t-esc="record.partner_id.name" />
+                                <h4 class="w-100 m-0 p-0">Nombre:</h4>
+                                <span t-esc="record.partner_id.name" />
                             </div>
                             <div t-if="record.partner_id">
-                                <strong>Dirección:</strong>
+                                <h4 class="w-100 m-0">Dirección:</h4>
                                 <span t-out="', '.join(filter(None, [record.partner_id.street, record.partner_id.street2, record.partner_id.city]))"/>
                                 <span t-if="record.partner_id.state_id"
                                     t-out="' %s %s' % (record.partner_id.state_id.name, record.partner_id.country_id.name)"/>
                                 <span t-if="record.partner_id.zip"
                                     t-field="record.partner_id.zip"/>
                             </div>
+                            <div t-if="record.sale_id.user_id">
+                                <h3 class="w-100 m-0">
+                                    <strong>Agente:</strong>
+                                </h3>
+                                <span t-esc="record.sale_id.user_id.name" />
+                            </div>
+                            <div t-if="record.date_done">
+                                <h3 class="w-100 m-0">
+                                    <strong>Fecha de entrega:</strong>
+                                </h3>
+                                <span t-esc="record.date_done" />
+                            </div>
                         </div>
 
-                        <h4>Productos:</h4>
-                        <table class="table table-sm">
-                            <thead>
+                        <table class="table table-sm table-borderless mt16">
+                            <thead class="border-bottom">
                                 <tr>
                                     <th>Producto</th>
                                     <th>Demanda</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="border-bottom">
                                 <t t-foreach="record.move_ids_without_package"
                                     t-as="line">
                                     <tr>
                                         <td>
-                                            <t t-esc="line.product_id.name" />
+                                            <span t-esc="line.product_id.name" />
                                         </td>
                                         <td>
-                                            <t t-esc="line.product_uom_qty" />
+                                            <span t-esc="line.product_uom_qty" />
                                         </td>
                                     </tr>
                                 </t>
