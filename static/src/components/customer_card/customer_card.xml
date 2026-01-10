@@ -59,7 +59,7 @@
                 <div class="w-100 mt-3 px-3">
                     <div class="progress rounded-pill overflow-hidden"
                         style="height: 1.75rem;">
-                        <div class="progress-bar bg-primary"
+                        <div class="progress-bar bg-primary fs-5"
                             role="progressbar"
                             t-att-style="`width: ${progressPercent}%`"
                             t-att-aria-valuenow="progressPercent"
@@ -72,9 +72,9 @@
                 </div>
 
                 <!-- Pedido -->
-                <t t-if="currentStep === 0">
-                    <div class="mt-3 w-100 h-100 mb-auto">
-                        <h2 class="fs-1 mb-3 text-center">Pedido</h2>
+                <t t-if="localAddress.currentStep === 0">
+                    <div class="pt-3 w-100 h-100">
+                        <h1 class="fs-1 mb-3 text-center">Pedido</h1>
                         <t t-if="address.product_lines.length > 0 or localAddress.product_lines.length > 0">
                             <div class="mt-3 px-3">
                                 <table class="table table-sm">
@@ -132,19 +132,30 @@
                                 </button>
                             </div>
                         </t>
-
-                        <div class="mt-auto d-flex justify-content-end border-top pt-3 px-3">
-                            <t t-if="localAddress.status === 'visited'">
-                                <button class="btn btn-secondary mx-1"
-                                    t-on-click="saveProducts">
+                    </div>
+                    <div class="mt-auto d-flex justify-content-end border-top p-3">
+                        <t t-if="localAddress.status === 'visited'">
+                            <button class="btn btn-secondary mx-1"
+                                t-on-click="saveProducts">
                                     Guardar cantidades
-                                </button>
-                            </t>
-                            <button class="btn btn-primary mx-1"
-                                t-on-click="() => stepChanged(1)">
-                                Siguiente paso
                             </button>
-                        </div>
+                        </t>
+                        <button class="btn btn-primary mx-1"
+                            t-on-click="nextStep">
+                                Siguiente paso
+                        </button>
+                    </div>
+                </t>
+                <t t-elif="localAddress.currentStep === 1">
+                    <div class="pt-3 w-100 h-100">
+                        <h1 class="fs-1 mb-3 text-center">Ventas</h1>
+                    </div>
+
+                    <div class="mt-auto d-flex justify-content-end border-top p-3">
+                        <button class="btn btn-secondary mx-1"
+                            t-on-click="returnStep">
+                                Regresar
+                        </button>
                     </div>
                 </t>
             </div>

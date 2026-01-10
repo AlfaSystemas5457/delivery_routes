@@ -21,6 +21,7 @@ export class CustomerCard extends Component {
             address: this.props.address.address,
             status: this.props.address.status,
             product_lines: [],
+            currentStep: 0,
         });
 
         this.statusLabels = {
@@ -35,8 +36,6 @@ export class CustomerCard extends Component {
             'Inventario',
             'Pago',
         ];
-
-        this.currentStep = 0;
 
         onMounted(() => {
             if (!this.localAddress.product_lines.length) {
@@ -56,7 +55,7 @@ export class CustomerCard extends Component {
 
     get progressPercent() {
         const total = this.steps.length || 1;
-        const completed = this.currentStep || 0;
+        const completed = this.localAddress.currentStep || 0;
         return Math.min(Math.round((completed / total) * 100), 100);
     }
 
@@ -102,11 +101,6 @@ export class CustomerCard extends Component {
                 { type: "danger" }
             );
         }
-    }
-
-    async stepChanged(step) {
-        console.log("Step changed to:", step);
-        this.currentStep = step;
     }
 
     async onQuantityChange(ev, line) {
@@ -215,4 +209,17 @@ export class CustomerCard extends Component {
         }
     };
 
+    nextStep = async () => {
+        if ((this.localAddress.currentStep + 1) < this.steps.length) {
+            this.localAddress.currentStep = this.localAddress.currentStep + 1;
+        }
+        console.log("Step changed to:", this.localAddress.currentStep);
+    }
+
+    returnStep = async () => {
+        if ((this.localAddress.currentStep - 1) >= 0) {
+            this.localAddress.currentStep = this.localAddress.currentStep - 1;
+        }
+        console.log("Step changed to:", this.localAddress.currentStep);
+    }
 }
