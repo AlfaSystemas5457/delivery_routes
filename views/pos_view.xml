@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_delivery_pos_gui"
+        model="ir.actions.client">
+        <field name="name">Terminal de Reparto</field>
+        <field name="path">delivery-terminal</field>
+        <field name="tag">delivery_routes.pos_view</field>
+        <field name="target">fullscreen</field>
+    </record>
+</odoo>

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<templates id="template"
+    xml:space="preserve">
+    <t t-name="delivery_routes.DeliveryPosView">
+        <div class="delivery-pos-card pos-container d-flex flex-column h-100">
+            <t t-if="state.selectedAddress">
+                <CustomerCard address="state.selectedAddress"
+                    onClose="() => this.onCloseAddressDetails()"
+                    onProductsLoaded="(id) => this.handleProductsLoaded(id)"/>
+            </t>
+
+            <div class="pos-header d-flex justify-content-between align-items-center p-3 border-bottom shadow-sm">
+                <h4 class="mb-0 text-primary"
+                    t-if="state.config">
+                    <i class="fa fa-truck me-2"/>
+                    <t t-out="state.config.name"/>
+                </h4>
+                <button class="btn btn-outline-danger border-0"
+                    t-on-click="closeTerminal">
+                    <i class="fa fa-sign-out fa-lg"/>
+                </button>
+            </div>
+
+            <div class="pos-content flex-grow-1 p-4 overflow-auto">
+                <t t-if="!state.isLoading">
+                    <t t-set="route"
+                        t-value="state.activeRoute"/>
+                    <t t-if="!route">
+                        <div class="text-center mt-5">
+                            <div class="display-1 text-muted mb-4">
+                                <i class="fa fa-map-o"/>
+                            </div>
+                            <h3>No tienes una ruta activa para hoy</h3>
+                            <p class="text-muted">Presiona el botón para cargar tus paradas programadas.</p>
+                            <button class="btn btn-primary btn-lg px-5 py-3 mt-3 shadow"
+                                t-on-click="startNewRoute">
+                            INICIAR RUTA DEL DÍA
+                            </button>
+                        </div>
+                    </t>
+
+                    <t t-else="">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h1 class="mb-0">Ruta: <t t-out="route.name"/>
+                            </h1>
+
+                            <div class="d-flex flex-row flex-wrap align-items-center justify-content-center">
+                                <t t-if="route.state === 'start'">
+                                    <button class="mx-2 btn btn-primary btn-lg px-4 py-2 fs-4"
+                                        t-on-click="handleActionStart">
+                                    Iniciar Ruta
+                                    </button>
+                                </t>
+                                <t t-if="route.state === 'process'">
+                                    <button class="mx-2 btn btn-success btn-lg px-4 py-2 fs-4"
+                                        t-on-click="handleActionEnd">
+                                    Finalizar Ruta
+                                    </button>
+                                </t>
+
+                                <span class="badge rounded-pill px-3 py-2 fs-4 my-1"
+                                    t-attf-class="
+                                        {{ 
+                                            route.state === 'process' ? 'bg-primary text-white' : 
+                                            (route.state === 'end' ? 'bg-success text-white' : 
+                                            'bg-secondary text-black') 
+                                        }}">
+                                    <t t-out="stateLabels[route.state]"/>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column shadow border rounded-lg mb-4">
+                            <div class="d-md-flex flex-md-wrap shadow-sm">
+                                <t t-if="route">
+                                    <div class="p-4 w-100 w-md-50"
+                                        t-if="route.description">
+                                        <h3 class="mb-3 mt-4">Descripción del pedido:</h3>
+                                        <p class="fs-4"
+                                            t-out="route.description || 'N/A'"/>
+                                    </div>
+
+                                    <div class="p-4 w-100 w-md-50"
+                                        t-if="state.product_ids.length > 0">
+                                        <h3 class="mb-3">Productos a entregar:</h3>
+                                        <ul>
+                                            <t t-foreach="state.product_ids"
+                                                t-as="prod"
+                                                t-key="prod.id">
+                                                <li>
+                                                    <t t-out="prod.display_name"/>
+                                                </li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-4 text-center text-muted">
+                                    No hay información cargada en esta ruta.
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column shadow border rounded-lg">
+                            <div class="d-md-flex flex-md-wrap shadow-sm">
+                                <t t-if="state.route_address_ids.length > 0">
+                                    <t t-if="route.state !== 'process'">
+                                        <div class="p-4 w-100 text-center">
+                                            <h2 class="mb-3 text-danger">
+                                                <strong>
+                                                Ruta no iniciada
+                                                </strong>
+                                            </h2>
+                                            <span class="text-danger fs-5">
+                                                Debes iniciar la ruta para gestionar las direcciones.
+                                            </span>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-foreach="state.route_address_ids"
+                                            t-as="addr"
+                                            t-key="addr.id">
+                                            <AddressCard address="addr"
+                                                onClick="(a) => this.onSelectAddress(a)" />
+                                        </t>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-4 text-center text-muted">
+                                    No hay direcciones cargadas en esta ruta.
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

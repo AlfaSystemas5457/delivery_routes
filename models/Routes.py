@@ -174,15 +174,15 @@ class RouteSaleAddress(models.Model):
         ):
             raise exceptions.UserError("No se asignaron productos.")
 
-    def action_load_route_products(self):
-        for record in self:
-            if record.route_id and not record.product_lines:
-                product_lines = []
-                for product in record.route_id.product:
-                    product_lines.append(
-                        (0, 0, {"product_id": product.id, "quantity": 0.0})
-                    )
-                record.product_lines = product_lines
+    # def action_load_route_products(self):
+    #     for record in self:
+    #         if record.route_id and not record.product_lines:
+    #             product_lines = []
+    #             for product in record.route_id.product:
+    #                 product_lines.append(
+    #                     (0, 0, {"product_id": product.id, "quantity": 0.0})
+    #                 )
+    #             record.product_lines = product_lines
 
     def handle_button_ticket(self):
         self.ensure_one()
@@ -300,6 +300,94 @@ class RouteSaleAddress(models.Model):
             "type": "ir.actions.act_url",
             "url": url,
             "target": "new",
+        }
+
+    def action_save_product_quantities(self, lines):
+        self.ensure_one()
+
+        for line in lines:
+            product_line = self.env["route.sale.product.line"].browse(line["id"])
+            if product_line.sale_address_id.id != self.id:
+                continue
+
+            product_line.quantity = line["quantity"]
+
+        return True
+
+    def action_load_route_products(self):
+        self.ensure_one()
+
+        if not self.route_id:
+            raise exceptions.UserError("La dirección no tiene ruta asignada.")
+
+        if not self.product_lines:
+            self.product_lines = [
+                (
+                    0,
+                    0,
+                    {
+                        "product_id": product.id,
+                        "quantity": 0.0,
+                    },
+                )
+                for product in self.route_id.product
+            ]
+
+        return {
+            "id": self.id,
+            "contact": self.contact.id if self.contact else False,
+            "address": self.address,
+            "status": self.status,
+            "product_lines": self.product_lines.read(
+                [
+                    "id",
+                    "product_id",
+                    "quantity",
+                ]
+            ),
+        }
+
+    def action_update_status(self, status):
+        self.ensure_one()
+
+        if status not in ["pending", "visited", "skipped"]:
+            raise exceptions.UserError("Estado inválido.")
+
+        self.status = status
+        return True
+
+    def action_remove_product_line(self, line_id):
+        self.ensure_one()
+        line = self.env["route.sale.product.line"].browse(line_id)
+        if line.sale_address_id.id == self.id:
+            line.unlink()
+        return True
+
+    def get_available_products(self):
+        self.ensure_one()
+        all_products = self.route_id.product
+        used_ids = self.product_lines.mapped("product_id").ids
+        return [
+            {"id": p.id, "product_id": [p.id, p.name]}
+            for p in all_products
+            if p.id not in used_ids
+        ]
+
+    def action_add_product_line(self, productId):
+        self.ensure_one()
+        product = self.env["product.product"].browse(productId)
+        line = self.env["route.sale.product.line"].create(
+            {
+                "sale_address_id": self.id,
+                "product_id": product.id,
+                "quantity": 0,
+            }
+        )
+        # Retornar igual que action_load_route_products
+        return {
+            "id": line.id,
+            "product_id": [product.id, product.display_name],
+            "quantity": line.quantity,
         }
 
 

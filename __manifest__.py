@@ -17,10 +17,12 @@
         "report/report.xml",
         "report/report_delivery.xml",
         "report/report_invoice.xml",
+        "views/pos_view.xml",
         "views/view_picking.xml",
         "views/account_move_view.xml",
         "views/res_users_views.xml",
         "views/menu_views.xml",
+        "views/delivery_config_views.xml",
         "views/route_sale_address_view.xml",
         "views/route_view.xml",
         "views/address_view.xml",
@@ -28,6 +30,13 @@
         "views/res_partner_view.xml",
         "views/stock_report_delivery_document.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "delivery_routes/static/src/components/**/*.xml",
+            "delivery_routes/static/src/components/**/*.js",
+            "delivery_routes/static/src/components/**/*.scss",
+        ]
+    },
     "post_init_hook": "post_init_hook",
     "installable": True,
     "application": True,

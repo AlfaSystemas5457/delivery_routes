@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="delivery_routes.CustomerCard"
+        owl="1">
+        <div class="customer-card position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center p-5">
+            <t t-set="address"
+                t-value="props.address"/>
+            <div class="container-card d-flex flex-column">
+                <div class="card-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <div>
+                        <h1 class="fs-3 md:fs-2">
+                            <strong>
+                                <t t-out="address.contact[1]"/>
+                            </strong>
+                        </h1>
+                    </div>
+                    <div>
+                        <button class="btn btn-close"
+                            t-on-click="handleCloseModal"
+                            style="width: 52px; height: 52px;"/>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom w-100">
+                    <t t-if="address.address">
+                        <div>
+                            <h3>
+                                <strong class="fs-2">
+                                    <t t-out="address.address"/>
+                                </strong>
+                            </h3>
+                        </div>
+                    </t>
+                    <t t-if="localAddress.status">
+                        <div class="mt-2">
+                            <select class="form-select w-auto"
+                                t-att-class="{
+                                        'bg-warning text-dark': localAddress.status === 'pending',
+                                        'bg-success text-white': localAddress.status === 'visited',
+                                        'bg-danger text-black': localAddress.status === 'skipped',
+                                    }"
+                                t-att-value="localAddress.status"
+                                t-on-change="onStatusChange">
+
+                                <t t-foreach="Object.entries(statusLabels)"
+                                    t-as="status"
+                                    t-key="status[0]">
+                                    <option t-att-value="status[0]"
+                                        class="text-black">
+                                        <t t-out="status[1]"/>
+                                    </option>
+                                </t>
+                            </select>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Steps -->
+                <div class="w-100 mt-3 px-3">
+                    <div class="progress rounded-pill overflow-hidden"
+                        style="height: 1.75rem;">
+                        <div class="progress-bar bg-primary"
+                            role="progressbar"
+                            t-att-style="`width: ${progressPercent}%`"
+                            t-att-aria-valuenow="progressPercent"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
+                            <t t-out="progressPercent"/>
+%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pedido -->
+                <t t-if="currentStep === 0">
+                    <div class="mt-3 w-100 h-100 mb-auto">
+                        <h2 class="fs-1 mb-3 text-center">Pedido</h2>
+                        <t t-if="address.product_lines.length > 0 or localAddress.product_lines.length > 0">
+                            <div class="mt-3 px-3">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th style="width: 120px;">Cantidad</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <t t-foreach="localAddress.product_lines"
+                                            t-as="line"
+                                            t-key="line.id">
+                                            <tr>
+                                                <td>
+                                                    <t t-out="line.product_id[1]"/>
+                                                </td>
+                                                <td>
+                                                    <input type="number"
+                                                        min="0"
+                                                        class="form-control"
+                                                        t-att-value="line.quantity"
+                                                        t-on-input="(ev) => this.onQuantityChange(ev, line)" />
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-danger"
+                                                        t-on-click="() => removeLine(line)">
+                                                        <i class="fa fa-trash"/>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                                <select class="form-select mb-2"
+                                    t-on-change="onProductSelected">
+                                    <option value="">Agregar producto...</option>
+                                    <t t-foreach="availableProducts.items"
+                                        t-as="p"
+                                        t-key="p.id">
+                                        <option t-att-value="p.id">
+                                            <t t-out="p.product_id ? p.product_id[1] : 'Sin nombre'"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="d-flex flex-column justify-content-center align-items-center p-5">
+                                <button class="btn btn-primary mx-1"
+                                    t-on-click="loadProducts">
+                                    <i class="fa fa-plus me-2"/>
+                                    Cargar productos al pedido
+                                </button>
+                            </div>
+                        </t>
+
+                        <div class="mt-auto d-flex justify-content-end border-top pt-3 px-3">
+                            <t t-if="localAddress.status === 'visited'">
+                                <button class="btn btn-secondary mx-1"
+                                    t-on-click="saveProducts">
+                                    Guardar cantidades
+                                </button>
+                            </t>
+                            <button class="btn btn-primary mx-1"
+                                t-on-click="() => stepChanged(1)">
+                                Siguiente paso
+                            </button>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>
