@@ -8,7 +8,7 @@
             ref="stock.view_picking_form"/>
         <field name="arch"
             type="xml">
-            <xpath expr="//field[@name='move_ids_without_package']"
+            <xpath expr="//field[@name='move_ids']"
                 position="after">
                 <group>
                     <group>

@@ -28,13 +28,13 @@ class ResUsers(models.Model):
                 continue
 
             # Limpiar grupos
-            user.groups_id = user.groups_id - group_assigned - group_all
+            user.group_ids = user.group_ids - group_assigned - group_all
 
             # Asignar grupo adecuado
             if user.access_scope == "assigned":
-                user.groups_id = user.groups_id | group_assigned
+                user.group_ids = user.group_ids | group_assigned
             else:
-                user.groups_id = user.groups_id | group_all
+                user.group_ids = user.group_ids | group_all
 
     def _update_users_access_scope(self):
         users = self.search([])

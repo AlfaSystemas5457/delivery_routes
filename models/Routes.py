@@ -41,16 +41,19 @@ class Route(models.Model):
         tracking=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if not vals.get("name"):
-            vals["name"] = self.env["ir.sequence"].next_by_code("route.route.sequence")
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("name"):
+                vals["name"] = self.env["ir.sequence"].next_by_code(
+                    "route.route.sequence"
+                )
+        return super().create(vals_list)
 
     @api.constrains("warehouse_id")
     def _check_single_warehouse(self):
         for record in self:
-            if len(record.warehouse_id) > 1:
+            if not record.warehouse_id:
                 raise exceptions.ValidationError("Solo puedes seleccionar un almacén.")
 
     @api.model
@@ -159,7 +162,8 @@ class RouteSaleAddress(models.Model):
     ticket_pdf = fields.Binary(string="Ticket PDF", readonly=True)
 
     def _compute_state(self):
-        self.state = self.route_id.state
+        for rec in self:
+            rec.state = rec.route_id.state
 
     def _validations(self):
         if not self.contact:
@@ -266,12 +270,13 @@ class RouteSaleAddress(models.Model):
         if self.contact:
             self.address = self._compute_address_from_contact(self.contact)
 
-    @api.model
-    def create(self, vals):
-        if vals.get("contact") and not vals.get("address"):
-            contact = self.env["res.partner"].browse(vals["contact"])
-            vals["address"] = self._compute_address_from_contact(contact)
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("contact") and not vals.get("address"):
+                contact = self.env["res.partner"].browse(vals["contact"])
+                vals["address"] = self._compute_address_from_contact(contact)
+        return super().create(vals_list)
 
     def write(self, vals):
         if vals.get("contact") and not vals.get("address"):
@@ -412,7 +417,6 @@ class Address(models.Model):
     salesperson_ids = fields.Many2many(
         "res.users",
         string="Repartidores",
-        ondelete="cascade",
         required=True,
         tracking=True,
     )
@@ -429,7 +433,6 @@ class Address(models.Model):
     route_address_ids = fields.Many2many(
         "res.partner",
         relation="route_address_partner_rel",
-        ondelete="cascade",
         string="Direcciones",
         required=True,
         tracking=True,

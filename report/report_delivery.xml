@@ -39,7 +39,7 @@
                                 </tr>
                             </thead>
                             <tbody class="border-bottom">
-                                <t t-foreach="record.move_ids_without_package"
+                                <t t-foreach="record.move_ids"
                                     t-as="line">
                                     <tr>
                                         <td>
