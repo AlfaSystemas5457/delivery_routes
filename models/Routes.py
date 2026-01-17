@@ -160,6 +160,7 @@ class RouteSaleAddress(models.Model):
         compute="_compute_state",
     )
     ticket_pdf = fields.Binary(string="Ticket PDF", readonly=True)
+    current_step = fields.Integer(default=0)
 
     def _compute_state(self):
         for rec in self:
@@ -393,6 +394,36 @@ class RouteSaleAddress(models.Model):
             "id": line.id,
             "product_id": [product.id, product.display_name],
             "quantity": line.quantity,
+        }
+
+    def handle_button_sale_terminal(self):
+        self.ensure_one()
+
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": self.contact.id,
+                "origin": "Ruta: %s" % (self.route_id.name or ""),
+                "warehouse_id": self.route_id.warehouse_id.id,
+            }
+        )
+
+        for line in self.product_lines:
+            if line.quantity > 0:
+                self.env["sale.order.line"].create(
+                    {
+                        "order_id": order.id,
+                        "product_id": line.product_id.id,
+                        "product_uom_qty": line.quantity,
+                        "price_unit": line.product_id.lst_price,
+                        "name": line.product_id.name,
+                    }
+                )
+
+        self.sale_order_id = order
+        self.status = "visited"
+
+        return {
+            "sale_order_id": order.id,
         }
 
 

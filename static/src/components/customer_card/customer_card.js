@@ -21,7 +21,7 @@ export class CustomerCard extends Component {
             address: this.props.address.address,
             status: this.props.address.status,
             product_lines: [],
-            currentStep: 0,
+            currentStep: this.props.address.current_step || 0,
         });
 
         this.statusLabels = {
@@ -55,7 +55,7 @@ export class CustomerCard extends Component {
 
     get progressPercent() {
         const total = this.steps.length || 1;
-        const completed = this.localAddress.currentStep || 0;
+        const completed = this.localAddress.currentStep + 1 || 0;
         return Math.min(Math.round((completed / total) * 100), 100);
     }
 
@@ -190,6 +190,32 @@ export class CustomerCard extends Component {
         }
     }
 
+    async createSaleOrder() {
+        try {
+            const result = await this.orm.call(
+                "route.sale.address",
+                "handle_button_sale_terminal",
+                [[this.localAddress.id]]
+            );
+
+            const orderId = result.sale_order_id;
+            if (!orderId) {
+                throw new Error("No se creó la orden");
+            }
+
+            this.notification.add(
+                "Orden creada correctamente con ID: " + orderId,
+                { type: "success" }
+            );
+            this.nextStep();
+        } catch (error) {
+            this.notification.add(
+                "Error al crear la orden: " + error.message,
+                { type: "danger" }
+            );
+        }
+    }
+
     removeLine = async (line) => {
         try {
             await this.orm.call(
@@ -211,15 +237,23 @@ export class CustomerCard extends Component {
 
     nextStep = async () => {
         if ((this.localAddress.currentStep + 1) < this.steps.length) {
-            this.localAddress.currentStep = this.localAddress.currentStep + 1;
+            this.localAddress.currentStep++;
+            await this.orm.call(
+                "route.sale.address",
+                "write",
+                [[this.localAddress.id], { current_step: this.localAddress.currentStep }]
+            );
         }
-        console.log("Step changed to:", this.localAddress.currentStep);
     }
 
     returnStep = async () => {
         if ((this.localAddress.currentStep - 1) >= 0) {
-            this.localAddress.currentStep = this.localAddress.currentStep - 1;
+            this.localAddress.currentStep--;
+            await this.orm.call(
+                "route.sale.address",
+                "write",
+                [[this.localAddress.id], { current_step: this.localAddress.currentStep }]
+            );
         }
-        console.log("Step changed to:", this.localAddress.currentStep);
     }
 }

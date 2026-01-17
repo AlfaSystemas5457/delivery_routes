@@ -1,4 +1,11 @@
 .address-card {
     color: black;
-    background: white;
+    background: #f9fafb;
+}
+
+@media (prefers-color-scheme: dark) {
+    .address-card {
+        color: white;
+        background: #1b1d26;
+    }
 }

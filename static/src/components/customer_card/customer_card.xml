@@ -35,9 +35,9 @@
                         <div class="mt-2">
                             <select class="form-select w-auto"
                                 t-att-class="{
-                                        'bg-warning text-dark': localAddress.status === 'pending',
-                                        'bg-success text-white': localAddress.status === 'visited',
-                                        'bg-danger text-black': localAddress.status === 'skipped',
+                                        'bg-warning font-color-black': localAddress.status === 'pending',
+                                        'bg-success font-color-white': localAddress.status === 'visited',
+                                        'bg-danger font-color-white': localAddress.status === 'skipped',
                                     }"
                                 t-att-value="localAddress.status"
                                 t-on-change="onStatusChange">
@@ -133,31 +133,46 @@
                             </div>
                         </t>
                     </div>
-                    <div class="mt-auto d-flex justify-content-end border-top p-3">
-                        <t t-if="localAddress.status === 'visited'">
-                            <button class="btn btn-secondary mx-1"
-                                t-on-click="saveProducts">
-                                    Guardar cantidades
-                            </button>
-                        </t>
-                        <button class="btn btn-primary mx-1"
-                            t-on-click="nextStep">
-                                Siguiente paso
-                        </button>
-                    </div>
                 </t>
                 <t t-elif="localAddress.currentStep === 1">
                     <div class="pt-3 w-100 h-100">
-                        <h1 class="fs-1 mb-3 text-center">Ventas</h1>
-                    </div>
-
-                    <div class="mt-auto d-flex justify-content-end border-top p-3">
-                        <button class="btn btn-secondary mx-1"
-                            t-on-click="returnStep">
-                                Regresar
-                        </button>
+                        <h1 class="fs-1 mb-3 text-center">Venta</h1>
                     </div>
                 </t>
+                <t t-elif="localAddress.currentStep === 2">
+                    <div class="pt-3 w-100 h-100">
+                        <h1 class="fs-1 mb-3 text-center">Inventario</h1>
+                    </div>
+                </t>
+                <t t-elif="localAddress.currentStep === 3">
+                    <div class="pt-3 w-100 h-100">
+                        <h1 class="fs-1 mb-3 text-center">Factura</h1>
+                    </div>
+                </t>
+
+                <div class="mt-auto d-flex justify-content-end border-top p-3">
+                    <t t-if="localAddress.status === 'visited' and localAddress.currentStep === 0">
+                        <button class="btn btn-secondary mx-1"
+                            t-on-click="saveProducts">
+                            Guardar cantidades
+                        </button>
+
+                        <button class="btn btn-primary mx-1"
+                            t-on-click="createSaleOrder"
+                            t-if="localAddress.product_lines.map(line => line.quantity).reduce((a, b) => a + b, 0) > 0 and localAddress.route_address_ids === false">
+                            Generar cotización
+                        </button>
+                    </t>
+
+                    <button class="btn btn-secondary mx-1"
+                        t-on-click="returnStep">
+                        Regresar
+                    </button>
+                    <button class="btn btn-primary mx-1"
+                        t-on-click="nextStep">
+                        Siguiente paso
+                    </button>
+                </div>
             </div>
         </div>
     </t>

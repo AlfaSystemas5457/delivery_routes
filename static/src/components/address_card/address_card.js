@@ -17,4 +17,13 @@ export class AddressCard extends Component {
         };
         return labels[this.props.address.status] || 'Desconocido';
     }
+
+    get progressPercent() {
+        const steps = ["Pedido", "Venta", "Inventario", "Pago"];
+        const total = steps.length || 1;
+
+        const completed = (this.props.address.current_step ?? 0) + 1;
+
+        return Math.min(Math.round((completed / total) * 100), 100);
+    }
 }

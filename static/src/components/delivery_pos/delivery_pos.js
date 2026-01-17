@@ -57,7 +57,7 @@ export class DeliveryPosView extends Component {
                     this.state.route_address_ids = await this.orm.read(
                         "route.sale.address",
                         this.state.activeRoute.route_address_ids,
-                        ["contact", "address", "status", "route_id", "product_lines", "sale_order_id"]
+                        ["contact", "address", "status", "route_id", "product_lines", "sale_order_id", "current_step"]
                     );
                 }
 
@@ -69,6 +69,7 @@ export class DeliveryPosView extends Component {
                     );
                 }
             }
+            console.log(this.state);
         }
         this.state.isLoading = false;
 
@@ -148,8 +149,10 @@ export class DeliveryPosView extends Component {
         this.state.selectedAddress = address;
     }
 
-    onCloseAddressDetails() {
+    async onCloseAddressDetails() {
         this.state.selectedAddress = null;
+
+        await this._loadData();
     }
 }
 registry.category("actions").add("delivery_routes.pos_view", DeliveryPosView);
