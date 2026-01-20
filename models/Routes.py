@@ -351,6 +351,7 @@ class RouteSaleAddress(models.Model):
                     "quantity",
                 ]
             ),
+            "sale_order_id": self.sale_order_id.id if self.sale_order_id else False,
         }
 
     def action_update_status(self, status):
@@ -398,6 +399,7 @@ class RouteSaleAddress(models.Model):
 
     def handle_button_sale_terminal(self):
         self.ensure_one()
+        self.generate_ticket()
 
         order = self.env["sale.order"].create(
             {

@@ -2,7 +2,7 @@
 import { registry } from "@web/core/registry";
 import { Component, onWillStart, useState } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
-import { AddressCard } from "./../address_card/address_card";
+import { AddressCard } from "../address_card/address_card";
 import { CustomerCard } from "../customer_card/customer_card";
 
 export class DeliveryPosView extends Component {
@@ -69,7 +69,6 @@ export class DeliveryPosView extends Component {
                     );
                 }
             }
-            console.log(this.state);
         }
         this.state.isLoading = false;
 
