@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { Component, useState, onMounted } from "@odoo/owl";
+import { Component, useState, onMounted, useRef } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
 
 export class CustomerCard extends Component {
@@ -12,6 +12,10 @@ export class CustomerCard extends Component {
     };
 
     setup() {
+        this.state = useState({ showSignatureModal: false });
+        this.signatureCanvasRef = useRef("signatureCanvas");
+        this.signaturePad = null;
+
         this.orm = useService("orm");
         this.notification = useService("notification");
 
@@ -26,6 +30,9 @@ export class CustomerCard extends Component {
             sale_details: {},
             sale_order_lines_details: [],
             paymentTerms: [],
+            stock_picking_id: false,
+            stock_picking_details: {},
+            stock_picking_line_details: [],
         });
 
         this.statusLabels = {
@@ -41,6 +48,15 @@ export class CustomerCard extends Component {
             cancel: 'Cancelado',
         };
 
+        this.statusStockPickingLabels = {
+            draft: 'Borrador',
+            waiting: 'En espera de otra operación',
+            confirmed: 'En espera',
+            assigned: 'Listo',
+            done: 'Hecho',
+            cancel: 'Cancelado',
+        };
+
         this.steps = [
             'Pedido',
             'Venta',
@@ -49,14 +65,16 @@ export class CustomerCard extends Component {
         ];
 
         onMounted(() => {
-            if (!this.localAddress.product_lines.length) {
-                this.loadProducts();
+            // if (!this.localAddress.product_lines.length) {
+            //     this.loadProducts();
+            // }
+            if (this.showSignatureModal && this.signatureCanvasRef.el) {
+                this.initSignaturePad();
             }
+            this.loadProducts();
         });
 
         this.availableProducts = useState({ items: [] });
-
-        this.loadProducts();
     }
 
     handleCloseModal() {
@@ -92,9 +110,10 @@ export class CustomerCard extends Component {
             this.localAddress.sale_order_id = result.sale_order_id;
 
             this.props.onProductsLoaded?.(this.props.address.id);
-            this.loadAvailableProducts();
-            this.getSaleDetails();
-            this.loadPaymentTerms();
+            await this.loadAvailableProducts();
+            await this.getSaleDetails();
+            await this.loadPaymentTerms();
+            await this.getStockPickingDetails();
             // this.notification.add(
             //     "Productos cargados correctamente",
             //     { type: "success" }
@@ -210,95 +229,6 @@ export class CustomerCard extends Component {
         }
     }
 
-    async createSaleOrder() {
-        try {
-            await this.saveProducts();
-            const result = await this.orm.call(
-                "route.sale.address",
-                "handle_button_sale_terminal",
-                [[this.localAddress.id]]
-            );
-
-            const orderId = result.sale_order_id;
-            if (!orderId) {
-                throw new Error("No se creó la orden");
-            }
-            this.localAddress.sale_order_id = orderId;
-            this.getSaleDetails();
-
-            this.notification.add(
-                "Orden creada correctamente con ID: " + orderId,
-                { type: "success" }
-            );
-            this.nextStep();
-        } catch (error) {
-            this.notification.add(
-                "Error al crear la orden: " + error.message,
-                { type: "danger" }
-            );
-        }
-    }
-
-    async getSaleDetails() {
-        const orderLineIds = this.localAddress.sale_details.order_line || [];
-        if (!Array.isArray(orderLineIds) || orderLineIds.length === 0) {
-            this.localAddress.sale_order_lines_details = [];
-        }
-        if (!this.localAddress.sale_order_id) return;
-
-        const saleOrder = await this.orm.searchRead(
-            "sale.order",
-            [["id", "=", this.localAddress.sale_order_id]],
-            ["name", "partner_id", "payment_term_id", "amount_untaxed", "amount_tax", "amount_total", "order_line", "state"],
-            { limit: 1 }
-        );
-
-        this.localAddress.sale_details = saleOrder.length > 0 ? saleOrder[0] : {};
-        console.log(this.localAddress.sale_details);
-
-        const saleOrderLines = await this.orm.searchRead(
-            "sale.order.line",
-            [["order_id", "=", this.localAddress.sale_order_id]],
-            ["id", "product_id", "product_uom_qty", "price_unit", "price_subtotal"]
-        );
-        console.log("Sale Order Lines:", saleOrderLines);
-        this.localAddress.sale_order_lines_details = saleOrderLines.length > 0 ? saleOrderLines : [];
-    }
-
-    async loadPaymentTerms() {
-        try {
-            const paymentTerms = await this.orm.searchRead(
-                "account.payment.term",
-                [],
-                ["id", "name"]
-            );
-            this.localAddress.paymentTerms = paymentTerms;
-        } catch (error) {
-            this.notification.add("Error al cargar términos de pago: " + error.message, { type: "danger" });
-        }
-    }
-
-    async onPaymentTermChange(ev) {
-        const selectedId = parseInt(ev.target.value, 10);
-        if (!selectedId) {
-            this.localAddress.sale_details.payment_term_id = [];
-            return;
-        }
-
-        this.localAddress.sale_details.payment_term_id = [selectedId, ev.target.options[ev.target.selectedIndex].text];
-
-        try {
-            await this.orm.call(
-                "sale.order",
-                "write",
-                [[this.localAddress.sale_order_id], { payment_term_id: selectedId }]
-            );
-            this.notification.add("Término de pago actualizado", { type: "success" });
-        } catch (error) {
-            this.notification.add("Error al actualizar término de pago: " + error.message, { type: "danger" });
-        }
-    }
-
     removeLine = async (line) => {
         try {
             await this.orm.call(
@@ -337,6 +267,208 @@ export class CustomerCard extends Component {
                 "write",
                 [[this.localAddress.id], { current_step: this.localAddress.currentStep }]
             );
+        }
+    }
+
+    // Venta
+    async createSaleOrder() {
+        try {
+            await this.saveProducts();
+            const result = await this.orm.call(
+                "route.sale.address",
+                "handle_button_sale_terminal",
+                [[this.localAddress.id]]
+            );
+
+            const orderId = result.sale_order_id;
+            if (!orderId) {
+                throw new Error("No se creó la orden");
+            }
+            this.localAddress.sale_order_id = orderId;
+            this.getSaleDetails();
+
+            this.notification.add(
+                "Orden creada correctamente con ID: " + orderId,
+                { type: "success" }
+            );
+            this.nextStep();
+        } catch (error) {
+            this.notification.add(
+                "Error al crear la orden: " + error.message,
+                { type: "danger" }
+            );
+        }
+    }
+
+    async getSaleDetails() {
+        try {
+            const orderLineIds = this.localAddress.sale_details.order_line || [];
+            if (!Array.isArray(orderLineIds) || orderLineIds.length === 0) {
+                this.localAddress.sale_order_lines_details = [];
+            }
+
+            if (!this.localAddress.sale_order_id) {
+                return;
+            }
+
+            const saleOrder = await this.orm.searchRead(
+                "sale.order",
+                [["id", "=", this.localAddress.sale_order_id]],
+                [
+                    "name",
+                    "partner_id",
+                    "payment_term_id",
+                    "amount_untaxed",
+                    "amount_tax",
+                    "amount_total",
+                    "order_line",
+                    "state",
+                ],
+                { limit: 1 }
+            );
+
+            this.localAddress.sale_details = saleOrder.length > 0 ? saleOrder[0] : {};
+
+            const saleOrderLines = await this.orm.searchRead(
+                "sale.order.line",
+                [["order_id", "=", this.localAddress.sale_order_id]],
+                ["id", "product_id", "product_uom_qty", "price_unit", "price_subtotal"]
+            );
+
+            this.localAddress.sale_order_lines_details =
+                saleOrderLines.length > 0 ? saleOrderLines : [];
+        } catch (error) {
+            this.notification.add("Error al cargar detalles de la venta: " + (error.message || error), { type: "danger" });
+        }
+    }
+
+    async loadPaymentTerms() {
+        try {
+            const paymentTerms = await this.orm.searchRead(
+                "account.payment.term",
+                [],
+                ["id", "name"]
+            );
+            this.localAddress.paymentTerms = paymentTerms;
+        } catch (error) {
+            this.notification.add("Error al cargar términos de pago: " + error.message, { type: "danger" });
+        }
+    }
+
+    async onPaymentTermChange(ev) {
+        try {
+            const selectedId = parseInt(ev.target.value, 10);
+            if (!selectedId) {
+                this.localAddress.sale_details.payment_term_id = [];
+                return;
+            }
+
+            this.localAddress.sale_details.payment_term_id = [selectedId, ev.target.options[ev.target.selectedIndex].text];
+
+            await this.orm.call(
+                "sale.order",
+                "write",
+                [[this.localAddress.sale_order_id], { payment_term_id: selectedId }]
+            );
+            this.notification.add("Término de pago actualizado", { type: "success" });
+        } catch (error) {
+            this.notification.add("Error al actualizar término de pago: " + error.message, { type: "danger" });
+        }
+    }
+
+    async confirmSaleOrder() {
+        try {
+            if (this.localAddress.sale_details.state === 'draft' || this.localAddress.sale_details.state === 'sent') {
+                await this.orm.call(
+                    "sale.order",
+                    "action_confirm",
+                    [[this.localAddress.sale_order_id]]
+                );
+            }
+            this.getSaleDetails();
+            this.notification.add("Orden confirmada", { type: "success" });
+            await getStockPickingDetails();
+            this.nextStep();
+        } catch (error) {
+            this.notification.add("Error al confirmar orden: " + error.message, { type: "danger" });
+        }
+    }
+
+    // Inventario
+    async getStockPickingDetails() {
+        try {
+            if (this.localAddress.sale_details.state !== "sale") return;
+
+            const pickings = await this.orm.searchRead(
+                "stock.picking",
+                [["sale_id", "=", this.localAddress.sale_details.id]],
+                ["id", "name", "state", "move_ids", "customer_signature"],
+                { limit: 1 }
+            );
+
+            this.localAddress.stock_picking_details = pickings.length > 0 ? pickings[0] : {};
+            this.localAddress.stock_picking_id = this.localAddress.stock_picking_details.id || false;
+
+            console.log(this.localAddress.stock_picking_details);
+            const stock_moves = await this.orm.searchRead(
+                "stock.move",
+                [["picking_id", "=", this.localAddress.stock_picking_details.id]],
+                ["id", "product_id", "product_uom_qty", "quantity"]
+            );
+            console.log(stock_moves);
+            this.localAddress.stock_picking_line_details = stock_moves.length > 0 ? stock_moves : [];
+        } catch (error) {
+            this.notification.add("Error al cargar detalles de inventario: " + error.message, { type: "danger" });
+        }
+    }
+
+    openSignatureModal() {
+        this.state.showSignatureModal = true;
+    }
+
+    initSignaturePad() {
+        const canvas = this.signatureCanvasRef.el;
+        if (canvas) {
+            this.signaturePad = new SignaturePad(canvas);
+        }
+    }
+
+    clearSignature() {
+        if (this.signaturePad) {
+            this.signaturePad.clear();
+        }
+    }
+
+    closeSignatureModal() {
+        this.state.showSignatureModal = false;
+    }
+
+    clearSignature() {
+        if (this.signaturePad) {
+            this.signaturePad.clear();
+        }
+    }
+
+    async saveSignature() {
+        if (!this.signaturePad || this.signaturePad.isEmpty()) {
+            this.notification.add("Por favor dibuja la firma", { type: "danger" });
+            return;
+        }
+
+        const dataUrl = this.signaturePad.toDataURL("image/png");
+        const base64 = dataUrl.split(",")[1];
+
+        try {
+            await this.orm.write(
+                "stock.picking",
+                this.localAddress.stock_picking_id,
+                { customer_signature: base64 }
+            );
+            this.notification.add("Firma guardada", { type: "success" });
+            this.showSignatureModal = false;
+            this.getStockPickingDetails();
+        } catch (error) {
+            this.notification.add("Error al guardar la firma: " + error.message, { type: "danger" });
         }
     }
 }
