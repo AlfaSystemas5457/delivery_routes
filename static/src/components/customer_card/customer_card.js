@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { Component, useState, onMounted, useRef } from "@odoo/owl";
+import { Component, useState, onMounted, useRef, onPatched } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
 
 export class CustomerCard extends Component {
@@ -64,13 +64,20 @@ export class CustomerCard extends Component {
             'Pago',
         ];
 
+        onPatched(() => {
+            // if (this.state.showSignatureModal && this.signatureCanvasRef.el) {
+            // }
+            this.initSignaturePad();
+        });
+
+
         onMounted(() => {
             // if (!this.localAddress.product_lines.length) {
             //     this.loadProducts();
             // }
-            if (this.showSignatureModal && this.signatureCanvasRef.el) {
-                this.initSignaturePad();
-            }
+            // if (this.showSignatureModal && this.signatureCanvasRef.el) {
+            //     this.initSignaturePad();
+            // }
             this.loadProducts();
         });
 
@@ -409,17 +416,21 @@ export class CustomerCard extends Component {
             this.localAddress.stock_picking_details = pickings.length > 0 ? pickings[0] : {};
             this.localAddress.stock_picking_id = this.localAddress.stock_picking_details.id || false;
 
-            console.log(this.localAddress.stock_picking_details);
             const stock_moves = await this.orm.searchRead(
                 "stock.move",
                 [["picking_id", "=", this.localAddress.stock_picking_details.id]],
                 ["id", "product_id", "product_uom_qty", "quantity"]
             );
-            console.log(stock_moves);
             this.localAddress.stock_picking_line_details = stock_moves.length > 0 ? stock_moves : [];
         } catch (error) {
             this.notification.add("Error al cargar detalles de inventario: " + error.message, { type: "danger" });
         }
+    }
+
+    scheduleInitSignaturePad() {
+        this.env.bus.trigger("owl.nextTick").then(() => {
+            this.initSignaturePad();
+        });
     }
 
     openSignatureModal() {
@@ -429,7 +440,14 @@ export class CustomerCard extends Component {
     initSignaturePad() {
         const canvas = this.signatureCanvasRef.el;
         if (canvas) {
-            this.signaturePad = new SignaturePad(canvas);
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            this.signaturePad = new SignaturePad(canvas, {
+                penColor: "rgb(0,0,139)",
+                backgroundColor: "rgba(255,255,255,0)",
+                minWidth: 2.5,
+                maxWidth: 2.5,
+            });
         }
     }
 
@@ -455,19 +473,21 @@ export class CustomerCard extends Component {
             return;
         }
 
-        const dataUrl = this.signaturePad.toDataURL("image/png");
-        const base64 = dataUrl.split(",")[1];
-
         try {
+            const dataUrl = this.signaturePad.toDataURL("image/png");
+            const base64 = dataUrl.split(",")[1];
+
             await this.orm.write(
                 "stock.picking",
-                this.localAddress.stock_picking_id,
+                [this.localAddress.stock_picking_id],
                 { customer_signature: base64 }
             );
+
             this.notification.add("Firma guardada", { type: "success" });
-            this.showSignatureModal = false;
+            this.closeSignatureModal();
             this.getStockPickingDetails();
         } catch (error) {
+            console.warn(error);
             this.notification.add("Error al guardar la firma: " + error.message, { type: "danger" });
         }
     }

@@ -21,7 +21,7 @@
                     <group>
                         <field name="customer_signature"
                             widget="signature"
-                            readonly="state != 'assigned'"
+                            readonly="state in ('done', 'cancel')"
                             invisible="picking_type_code != 'outgoing'"/>
                     </group>
                 </group>
