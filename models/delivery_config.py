@@ -4,9 +4,12 @@ from odoo import models, fields
 class DeliveryConfig(models.Model):
     _name = "delivery.config"
     _description = "Configuración de Terminal de Ruta"
+    _inherit = ["mail.thread"]
 
-    name = fields.Char(string="Nombre del Terminal", required=True)
-    driver_id = fields.Many2one("res.users", string="Repartidor Asignado")
+    name = fields.Char(string="Nombre del Terminal", required=True, tracking=True)
+    driver_id = fields.Many2one(
+        "res.users", string="Repartidor Asignado", tracking=True
+    )
     # warehouse_id = fields.Many2one("stock.warehouse", string="Almacén de Origen")
     # Agrega campos como 'permitir_devoluciones', 'metodo_pago_id', etc.
     # allow_returns = fields.Boolean(string="Permitir Devoluciones", default=False)

@@ -59,11 +59,17 @@
                         class="oe_highlight"/>
                 </header>
                 <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"
+                                placeholder="Nombre del Terminal"/>
+                        </h1>
+                    </div>
                     <group>
-                        <field name="name"/>
                         <field name="driver_id"/>
                     </group>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
