@@ -12,9 +12,10 @@ export class CustomerCard extends Component {
     };
 
     setup() {
-        this.state = useState({ showSignatureModal: false });
         this.signatureCanvasRef = useRef("signatureCanvas");
         this.signaturePad = null;
+        this.state = useState({ showSignatureModal: false });
+        this.invoiceLinesById = useState([]);
 
         this.orm = useService("orm");
         this.notification = useService("notification");
@@ -33,6 +34,8 @@ export class CustomerCard extends Component {
             stock_picking_id: false,
             stock_picking_details: {},
             stock_picking_line_details: [],
+            invoice_ids: [],
+            invoice_details: [],
         });
 
         this.statusLabels = {
@@ -57,6 +60,12 @@ export class CustomerCard extends Component {
             cancel: 'Cancelado',
         };
 
+        this.statusInvoiceLabels = {
+            draft: 'Borrador',
+            posted: 'Registrado',
+            cancel: 'Cancelado',
+        };
+
         this.steps = [
             'Pedido',
             'Venta',
@@ -65,19 +74,11 @@ export class CustomerCard extends Component {
         ];
 
         onPatched(() => {
-            // if (this.state.showSignatureModal && this.signatureCanvasRef.el) {
-            // }
             this.initSignaturePad();
         });
 
 
         onMounted(() => {
-            // if (!this.localAddress.product_lines.length) {
-            //     this.loadProducts();
-            // }
-            // if (this.showSignatureModal && this.signatureCanvasRef.el) {
-            //     this.initSignaturePad();
-            // }
             this.loadProducts();
         });
 
@@ -121,6 +122,7 @@ export class CustomerCard extends Component {
             await this.getSaleDetails();
             await this.loadPaymentTerms();
             await this.getStockPickingDetails();
+            await this.getInvoiceDetails();
             // this.notification.add(
             //     "Productos cargados correctamente",
             //     { type: "success" }
@@ -295,7 +297,7 @@ export class CustomerCard extends Component {
             this.getSaleDetails();
 
             this.notification.add(
-                "Orden creada correctamente con ID: " + orderId,
+                "Orden creada correctamente.",
                 { type: "success" }
             );
             this.nextStep();
@@ -392,9 +394,10 @@ export class CustomerCard extends Component {
                     [[this.localAddress.sale_order_id]]
                 );
             }
-            this.getSaleDetails();
+
+            await this.getSaleDetails();
+            await this.getStockPickingDetails();
             this.notification.add("Orden confirmada", { type: "success" });
-            await getStockPickingDetails();
             this.nextStep();
         } catch (error) {
             this.notification.add("Error al confirmar orden: " + error.message, { type: "danger" });
@@ -484,11 +487,122 @@ export class CustomerCard extends Component {
             );
 
             this.notification.add("Firma guardada", { type: "success" });
-            this.closeSignatureModal();
-            this.getStockPickingDetails();
+            await this.closeSignatureModal();
+            await this.getStockPickingDetails();
         } catch (error) {
             console.warn(error);
             this.notification.add("Error al guardar la firma: " + error.message, { type: "danger" });
+        }
+    }
+
+    async confirmStockPicking() {
+        try {
+            await this.orm.call(
+                "stock.picking",
+                "button_validate",
+                [[this.localAddress.stock_picking_id]]
+            );
+            this.notification.add("Entrega confirmada", { type: "success" });
+            this.getStockPickingDetails();
+            this.nextStep();
+        } catch (error) {
+            this.notification.add("Error al confirmar entrega: " + error.message, { type: "danger" });
+        }
+    }
+
+    // Factura
+    async createInvoice() {
+        try {
+            const invoiceIds = await this.orm.call(
+                "sale.order",
+                "action_create_invoice_rpc",
+                [[this.localAddress.sale_order_id]],
+                {}
+            );
+
+            if (invoiceIds && invoiceIds.length) {
+                this.localAddress.invoice_ids = invoiceIds;
+
+                await this.getInvoiceDetails();
+
+                this.notification.add("Factura creada correctamente", { type: "success" });
+            } else {
+                this.notification.add("No se generó ninguna factura", { type: "warning" });
+            }
+        } catch (error) {
+            this.notification.add("Error al crear factura: " + (error.message || error), { type: "danger" });
+        }
+    }
+
+    async getInvoiceDetails() {
+        try {
+            this.localAddress.invoice_ids = await this.orm.call(
+                "sale.order",
+                "get_invoices_rpc",
+                [[this.localAddress.sale_order_id]],
+                {}
+            );
+
+            if (!this.localAddress.invoice_ids || this.localAddress.invoice_ids.length === 0) {
+                this.localAddress.invoice_details = [];
+                return;
+            }
+
+            const invoices = await this.orm.searchRead(
+                "account.move",
+                [
+                    ["id", "in", this.localAddress.invoice_ids],
+                    ["state", "!=", "cancel"]
+                ],
+                [
+                    "id",
+                    "name",
+                    "amount_untaxed",
+                    "amount_tax",
+                    "amount_total",
+                    "state"
+                ]
+            );
+            this.localAddress.invoice_details = invoices;
+
+            await Promise.all(
+                this.localAddress.invoice_details.map(inv => this.loadLinesForInvoice(inv.id))
+            );
+        } catch (error) {
+            this.notification.add("Error al cargar detalles de la factura: " + (error.message || error), { type: "danger" });
+        }
+    }
+
+    async loadLinesForInvoice(invoiceId) {
+        const lines = await this.orm.searchRead(
+            "account.move.line",
+            [
+                ["move_id", "=", invoiceId],
+                ["display_type", "=", "product"]
+            ],
+            [
+                "id",
+                "product_id",
+                "quantity",
+                "price_unit",
+                "price_subtotal"
+            ]
+        );
+        this.invoiceLinesById[invoiceId] = lines;
+    }
+
+    confirmInvoice = async (invoiceId) => {
+        try {
+            await this.orm.call(
+                "account.move",
+                "action_post",
+                [[invoiceId]],
+                {}
+            );
+            this.notification.add("Factura confirmada", { type: "success" });
+            await this.getInvoiceDetails();
+        } catch (error) {
+            this.notification.add("Error al confirmar factura: " + (error.message || error), { type: "danger" });
         }
     }
 }

@@ -16,18 +16,24 @@
                 </div>
 
                 <span t-att-class="{
-                'badge mt-1': true,
-                'bg-warning font-color-black': props.address.status === 'pending',
-                'bg-success font-color-white': props.address.status === 'visited',
-                'bg-danger font-color-white': props.address.status === 'skipped',
-            }">
+                    'badge mt-1': true,
+                    'bg-warning font-color-black-fixed': props.address.status === 'pending',
+                    'bg-success font-color-white-fixed': props.address.status === 'visited',
+                    'bg-danger font-color-white-fixed': props.address.status === 'skipped',
+                }">
                     <t t-out="statusLabel"/>
                 </span>
 
                 <!-- Barra de progreso -->
                 <div class="progress mt-2"
                     style="height: 6px;">
-                    <div class="progress-bar bg-primary"
+                    <div class="progress-bar"
+                        t-att-class="{
+                            'bg-secondary font-color-black-fixed': progressPercent === 25,
+                            'bg-info font-color-white-fixed': progressPercent === 50,
+                            'bg-primary font-color-white-fixed': progressPercent === 75,
+                            'bg-success font-color-white-fixed': progressPercent === 100,
+                        }"
                         role="progressbar"
                         t-att-style="`width: ${progressPercent}%`"
                         aria-valuemin="0"

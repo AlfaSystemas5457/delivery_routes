@@ -71,25 +71,11 @@ export class DeliveryPosView extends Component {
             }
         }
         this.state.isLoading = false;
-
-        // if (this.terminalId) {
-        //     const configs = await this.orm.read("delivery.config", [this.terminalId], ["name", "driver_id"]);
-        //     this.state.config = configs[0];
-
-        //     const routes = await this.orm.searchRead(
-        //         "route.route",
-        //         [["user_id", "=", this.state.config.driver_id[0]], ["state", "!=", "end"]],
-        //         ["name", "state", "route_address_ids"],
-        //         { limit: 1 }
-        //     );
-        //     this.state.activeRoute = routes.length > 0 ? routes[0] : null;
-        // }
-        // this.state.isLoading = false;
     }
 
     async startNewRoute() {
         try {
-            const newId = await this.orm.create("route.route", [{}]);
+            await this.orm.create("route.route", [{}]);
 
             this.notification.add("Ruta creada correctamente", { type: "success" });
             await this._loadData();
@@ -117,6 +103,7 @@ export class DeliveryPosView extends Component {
                 const route = this.state.activeRoute;
                 await this.orm.write("route.route", [route.id], { state: "end" });
                 this.notification.add("Ruta finalizada correctamente", { type: "success" });
+                this.state.activeRoute = null;
                 await this._loadData();
             }
         } catch (error) {

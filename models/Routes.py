@@ -220,6 +220,7 @@ class RouteSaleAddress(models.Model):
                     "partner_id": record.contact.id,
                     "origin": "Ruta: %s" % (record.route_id.name or ""),
                     "warehouse_id": record.route_id.warehouse_id.id,
+                    "user_id": self.env.user.id,
                 }
             )
 
@@ -406,6 +407,7 @@ class RouteSaleAddress(models.Model):
                 "partner_id": self.contact.id,
                 "origin": "Ruta: %s" % (self.route_id.name or ""),
                 "warehouse_id": self.route_id.warehouse_id.id,
+                "user_id": self.env.user.id,
             }
         )
 

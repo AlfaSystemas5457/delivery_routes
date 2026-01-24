@@ -60,12 +60,11 @@
                                 </t>
 
                                 <span class="badge rounded-pill px-3 py-2 fs-4 my-1"
-                                    t-attf-class="
-                                        {{ 
-                                            route.state === 'process' ? 'bg-primary text-white' : 
-                                            (route.state === 'end' ? 'bg-success text-white' : 
-                                            'bg-secondary text-black') 
-                                        }}">
+                                    t-att-class="{
+                                            'bg-secondary font-color-black-fixed': route.state === 'start',
+                                            'bg-danger font-color-white-fixed': route.state === 'process',
+                                            'bg-success font-color-white-fixed': route.state === 'end'
+                                        }">
                                     <t t-out="stateLabels[route.state]"/>
                                 </span>
                             </div>
