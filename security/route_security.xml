@@ -1,48 +1,112 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
     <!-- 🔒 Regla para usuarios con acceso limitado (solo rutas asignadas) -->
-    <record id="rule_route_assigned_only" model="ir.rule">
+    <record id="rule_route_assigned_only"
+        model="ir.rule">
         <field name="name">Ver solo rutas asignadas</field>
-        <field name="model_id" ref="model_route_route" />
+        <field name="model_id"
+            ref="model_route_route" />
         <field name="domain_force">[('salesperson_ids.id', '=', user.id)]</field>
-        <field name="groups" eval="[(4, ref('delivery_routes.group_route_access_assigned'))]" />
-        <field name="perm_create" eval="True" />
-        <field name="perm_read" eval="True" />
-        <field name="perm_write" eval="True" />
-        <field name="perm_unlink" eval="False" />
+        <field name="groups"
+            eval="[(4, ref('delivery_routes.group_route_access_assigned'))]" />
+        <field name="perm_create"
+            eval="True" />
+        <field name="perm_read"
+            eval="True" />
+        <field name="perm_write"
+            eval="True" />
+        <field name="perm_unlink"
+            eval="False" />
     </record>
 
-    <record id="rule_route_assigned_only_design" model="ir.rule">
+    <record id="rule_route_assigned_only_design"
+        model="ir.rule">
         <field name="name">Ver solo diseño de rutas asignadas</field>
-        <field name="model_id" ref="model_route_address" />
+        <field name="model_id"
+            ref="model_route_address" />
         <field name="domain_force">[('salesperson_ids.id', '=', user.id)]</field>
-        <field name="groups" eval="[(4, ref('delivery_routes.group_route_access_assigned'))]" />
-        <field name="perm_create" eval="True" />
-        <field name="perm_read" eval="True" />
-        <field name="perm_write" eval="True" />
-        <field name="perm_unlink" eval="False" />
+        <field name="groups"
+            eval="[(4, ref('delivery_routes.group_route_access_assigned'))]" />
+        <field name="perm_create"
+            eval="True" />
+        <field name="perm_read"
+            eval="True" />
+        <field name="perm_write"
+            eval="True" />
+        <field name="perm_unlink"
+            eval="False" />
+    </record>
+
+    <record id="rule_delivery_config_assigned_only"
+        model="ir.rule">
+        <field name="name">Ver solo configuración de entrega asignada</field>
+        <field name="model_id"
+            ref="model_delivery_config" />
+        <field name="domain_force">[('driver_id.id', '=', user.id)]</field>
+        <field name="groups"
+            eval="[(4, ref('delivery_routes.group_route_access_assigned'))]" />
+        <field name="perm_create"
+            eval="True" />
+        <field name="perm_read"
+            eval="True" />
+        <field name="perm_write"
+            eval="True" />
+        <field name="perm_unlink"
+            eval="False" />
     </record>
 
     <!-- 🔓 Regla para usuarios con acceso total (ver todas las rutas) -->
-    <record id="rule_route_access_all" model="ir.rule">
+    <record id="rule_route_access_all"
+        model="ir.rule">
         <field name="name">Ver todas las rutas</field>
-        <field name="model_id" ref="model_route_route" />
+        <field name="model_id"
+            ref="model_route_route" />
         <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(4, ref('delivery_routes.group_route_access_all'))]" />
-        <field name="perm_create" eval="False" />
-        <field name="perm_read" eval="True" />
-        <field name="perm_write" eval="True" />
-        <field name="perm_unlink" eval="True" />
+        <field name="groups"
+            eval="[(4, ref('delivery_routes.group_route_access_all'))]" />
+        <field name="perm_create"
+            eval="False" />
+        <field name="perm_read"
+            eval="True" />
+        <field name="perm_write"
+            eval="True" />
+        <field name="perm_unlink"
+            eval="True" />
     </record>
 
-    <record id="rule_route_access_all_design" model="ir.rule">
+    <record id="rule_route_access_all_design"
+        model="ir.rule">
         <field name="name">Ver todas los diseño de rutas</field>
-        <field name="model_id" ref="model_route_address" />
+        <field name="model_id"
+            ref="model_route_address" />
         <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(4, ref('delivery_routes.group_route_access_all'))]" />
-        <field name="perm_create" eval="False" />
-        <field name="perm_read" eval="True" />
-        <field name="perm_write" eval="True" />
-        <field name="perm_unlink" eval="True" />
+        <field name="groups"
+            eval="[(4, ref('delivery_routes.group_route_access_all'))]" />
+        <field name="perm_create"
+            eval="False" />
+        <field name="perm_read"
+            eval="True" />
+        <field name="perm_write"
+            eval="True" />
+        <field name="perm_unlink"
+            eval="True" />
+    </record>
+
+    <record id="rule_delivery_config_access_all_design"
+        model="ir.rule">
+        <field name="name">Ver todas las terminales</field>
+        <field name="model_id"
+            ref="model_delivery_config" />
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups"
+            eval="[(4, ref('delivery_routes.group_route_access_all'))]" />
+        <field name="perm_create"
+            eval="False" />
+        <field name="perm_read"
+            eval="True" />
+        <field name="perm_write"
+            eval="True" />
+        <field name="perm_unlink"
+            eval="True" />
     </record>
 </odoo>
