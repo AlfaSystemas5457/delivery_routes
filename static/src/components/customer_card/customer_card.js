@@ -213,6 +213,50 @@ export class CustomerCard extends Component {
         this.loadAvailableProducts();
     }
 
+    async onPrintRouteTicket() {
+        try {
+            const result = await this.orm.call(
+                "route.sale.address",
+                "get_ticket_pos",
+                [[this.localAddress.id]]
+            );
+
+            if (!result.ticket_pdf) {
+                this.notification.add("No se generó el ticket", { type: "warning" });
+                return;
+            }
+
+            const blob = this.base64ToBlob(result.ticket_pdf, "application/pdf");
+            const url = URL.createObjectURL(blob);
+
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src = url;
+
+            document.body.appendChild(iframe);
+
+            iframe.onload = () => {
+                try {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                } catch (e) {
+                    console.error("Error en print:", e);
+                }
+            };
+        } catch (error) {
+            this.notification.add("Error al imprimir ticket: " + error.message, { type: "danger" });
+        }
+    }
+
+    base64ToBlob(base64, type) {
+        const binary = atob(base64);
+        const array = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            array[i] = binary.charCodeAt(i);
+        }
+        return new Blob([array], { type });
+    }
+
     async addProductById(productId) {
         try {
             if (!productId) return;
@@ -405,6 +449,41 @@ export class CustomerCard extends Component {
     }
 
     // Inventario
+    async onPrintDeliveryTicket() {
+        try {
+            const result = await this.orm.call(
+                "stock.picking",
+                "get_delivery_ticket_pdf",
+                [[this.localAddress.stock_picking_id]]
+            );
+
+            if (!result.ticket_pdf) {
+                this.notification.add(
+                    "No hay ticket de entrega para imprimir",
+                    { type: "warning" }
+                );
+                return;
+            }
+
+            const blob = this.base64ToBlob(result.ticket_pdf, "application/pdf");
+            const url = URL.createObjectURL(blob);
+
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src = url;
+            document.body.appendChild(iframe);
+
+            iframe.onload = () => {
+                iframe.contentWindow.print();
+            };
+        } catch (error) {
+            this.notification.add(
+                "Error al generar ticket de entrega: " + error.message,
+                { type: "danger" }
+            );
+        }
+    }
+
     async getStockPickingDetails() {
         try {
             if (this.localAddress.sale_details.state !== "sale") return;
@@ -511,6 +590,35 @@ export class CustomerCard extends Component {
     }
 
     // Factura
+    onPrintInvoiceTicket = async (invoiceId) => {
+        try {
+            const result = await this.orm.call(
+                "account.move",
+                "get_invoice_ticket_pdf",
+                [[invoiceId]]
+            );
+
+            if (!result.ticket_pdf) {
+                this.notification.add("No hay ticket de factura para imprimir", { type: "warning" });
+                return;
+            }
+
+            const blob = this.base64ToBlob(result.ticket_pdf, "application/pdf");
+            const url = URL.createObjectURL(blob);
+
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src = url;
+            document.body.appendChild(iframe);
+
+            iframe.onload = () => {
+                iframe.contentWindow.print();
+            };
+        } catch (error) {
+            this.notification.add("Error al imprimir ticket de factura: " + error.message, { type: "danger" });
+        }
+    }
+
     async createInvoice() {
         try {
             const invoiceIds = await this.orm.call(

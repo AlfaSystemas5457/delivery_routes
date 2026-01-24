@@ -208,7 +208,20 @@ class RouteSaleAddress(models.Model):
             report_obj.report_name, [self.id]
         )
 
-        self.ticket_pdf = base64.b64encode(pdf_content)
+        self.ticket_pdf = base64.b64encode(pdf_content).decode("utf-8")
+
+    def get_ticket_pos(self):
+        self.ensure_one()
+
+        if not self.ticket_pdf:
+            self.generate_ticket()
+
+        ticket_b64 = self.ticket_pdf
+
+        return {
+            "ticket_pdf": ticket_b64,
+            "filename": f"ticket_{self.id}.pdf",
+        }
 
     def handle_button_sale(self):
         self.ensure_one()
