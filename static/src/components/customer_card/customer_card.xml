@@ -556,6 +556,16 @@
                     <!-- Inventario -->
                     <t t-if="localAddress.currentStep === 2">
                         <button class="btn btn-secondary mx-1"
+                            t-if="
+                                localAddress.stock_picking_details.customer_signature 
+                                and localAddress.stock_picking_id !== false
+                                and (localAddress.stock_picking_line_details
+                                    .map(line => line.quantity)
+                                    .reduce((a,b) => a + b, 0)
+                                    === localAddress.stock_picking_line_details
+                                        .map(line => line.product_uom_qty)
+                                        .reduce((a,b) => a + b, 0))
+                            "
                             t-on-click="onPrintDeliveryTicket">Imprimir Ticket
                         </button>
 
