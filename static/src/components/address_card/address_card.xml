@@ -3,9 +3,10 @@
     <t t-name="delivery_routes.AddressCard">
         <div class="address-card p-3 cursor-pointer shadow-sm border d-flex justify-content-between align-items-center w-md-50 w-xl-25"
             t-on-click="() => props.onClick(props.address)">
-            <div>
+
+            <div class="w-100 me-3">
                 <h3>
-                    <strong class="">
+                    <strong>
                         <t t-out="props.address.contact[1]"/>
                     </strong>
                 </h3>
@@ -13,19 +14,42 @@
                     <i class="fa fa-map-marker me-1"/>
                     <t t-out="props.address.address"/>
                 </div>
+
                 <span t-att-class="{
-                        'badge mt-1': true,
-                        'bg-warning text-dark': props.address.status === 'pending',
-                        'bg-success text-white': props.address.status === 'visited',
-                        'bg-danger text-black': props.address.status === 'skipped',
-                    }">
+                    'badge mt-1': true,
+                    'bg-warning font-color-black-fixed': props.address.status === 'pending',
+                    'bg-success font-color-white-fixed': props.address.status === 'visited',
+                    'bg-danger font-color-white-fixed': props.address.status === 'skipped',
+                }">
                     <t t-out="statusLabel"/>
                 </span>
+
+                <!-- Barra de progreso -->
+                <div class="progress mt-2"
+                    style="height: 6px;">
+                    <div class="progress-bar"
+                        t-att-class="{
+                            'bg-secondary font-color-black-fixed': progressPercent === 25,
+                            'bg-info font-color-white-fixed': progressPercent === 50,
+                            'bg-primary font-color-white-fixed': progressPercent === 75,
+                            'bg-success font-color-white-fixed': progressPercent === 100,
+                        }"
+                        role="progressbar"
+                        t-att-style="`width: ${progressPercent}%`"
+                        aria-valuemin="0"
+                        aria-valuemax="100"/>
+                </div>
+                <small class="text-muted">
+                    <t t-out="progressPercent"/>
+%
+                </small>
             </div>
+
             <button class="btn btn-primary rounded-circle shadow-sm"
                 style="width: 40px; height: 40px;">
                 <i class="fa fa-chevron-right"/>
             </button>
         </div>
+
     </t>
 </templates>

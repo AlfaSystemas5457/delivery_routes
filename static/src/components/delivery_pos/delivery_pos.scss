@@ -1,4 +1,43 @@
 .delivery-pos-card {
     color: black;
-    background: white;
+    background: #f9fafb;
+}
+
+.font-color-black {
+    color: black;
+}
+
+.font-color-white {
+    color: white;
+}
+
+.font-color-black-fixed {
+    color: black;
+}
+
+.font-color-white-fixed {
+    color: white;
+}
+
+.font-color {
+    color: black;
+}
+
+@media (prefers-color-scheme: dark) {
+    .delivery-pos-card {
+        color: white;
+        background: #1b1d26;
+    }
+
+    .font-color {
+        color: white;
+    }
+
+    .font-color-black {
+        color: white;
+    }
+
+    .font-color-white {
+        color: black;
+    }
 }

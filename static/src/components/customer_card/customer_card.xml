@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <t t-name="delivery_routes.CustomerCard"
         owl="1">
-        <div class="customer-card position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center p-5">
+        <div class="customer-card position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center p-0 p-sm-5">
             <t t-set="address"
                 t-value="props.address"/>
             <div class="container-card d-flex flex-column">
@@ -21,7 +21,7 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center p-3 border-bottom w-100">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 border-bottom w-100">
                     <t t-if="address.address">
                         <div>
                             <h3>
@@ -35,9 +35,9 @@
                         <div class="mt-2">
                             <select class="form-select w-auto"
                                 t-att-class="{
-                                        'bg-warning text-dark': localAddress.status === 'pending',
-                                        'bg-success text-white': localAddress.status === 'visited',
-                                        'bg-danger text-black': localAddress.status === 'skipped',
+                                        'bg-warning font-color-black': localAddress.status === 'pending',
+                                        'bg-success font-color-white': localAddress.status === 'visited',
+                                        'bg-danger font-color-white': localAddress.status === 'skipped',
                                     }"
                                 t-att-value="localAddress.status"
                                 t-on-change="onStatusChange">
@@ -59,21 +59,29 @@
                 <div class="w-100 mt-3 px-3">
                     <div class="progress rounded-pill overflow-hidden"
                         style="height: 1.75rem;">
-                        <div class="progress-bar bg-primary fs-5"
+                        <div class="progress-bar fs-5"
+                            t-att-class="{
+                                'bg-secondary font-color-black-fixed': localAddress.currentStep === 0,
+                                'bg-info font-color-white-fixed': localAddress.currentStep === 1,
+                                'bg-primary font-color-white-fixed': localAddress.currentStep === 2,
+                                'bg-success font-color-white-fixed': localAddress.currentStep === 3,
+                            }"
                             role="progressbar"
                             t-att-style="`width: ${progressPercent}%`"
                             t-att-aria-valuenow="progressPercent"
                             aria-valuemin="0"
                             aria-valuemax="100">
-                            <t t-out="progressPercent"/>
+                            <strong>
+                                <t t-out="progressPercent"/>
 %
+                            </strong>
                         </div>
                     </div>
                 </div>
 
                 <!-- Pedido -->
                 <t t-if="localAddress.currentStep === 0">
-                    <div class="pt-3 w-100 h-100">
+                    <div class="pt-3 w-100 h-100 overflow-auto">
                         <h1 class="fs-1 mb-3 text-center">Pedido</h1>
                         <t t-if="address.product_lines.length > 0 or localAddress.product_lines.length > 0">
                             <div class="mt-3 px-3">
@@ -97,11 +105,15 @@
                                                     <input type="number"
                                                         min="0"
                                                         class="form-control"
+                                                        t-att-id="'qty-' + line.id"
+                                                        t-att-name="'qty_product_' + line.product_id[0]"
+                                                        t-att-disabled="localAddress.sale_order_id ? true : undefined"
                                                         t-att-value="line.quantity"
                                                         t-on-input="(ev) => this.onQuantityChange(ev, line)" />
                                                 </td>
                                                 <td>
                                                     <button class="btn btn-sm btn-danger"
+                                                        t-att-disabled="localAddress.sale_order_id ? true : undefined"
                                                         t-on-click="() => removeLine(line)">
                                                         <i class="fa fa-trash"/>
                                                     </button>
@@ -111,7 +123,8 @@
                                     </tbody>
                                 </table>
                                 <select class="form-select mb-2"
-                                    t-on-change="onProductSelected">
+                                    t-on-change="onProductSelected"
+                                    t-att-disabled="localAddress.sale_order_id ? true : undefined">
                                     <option value="">Agregar producto...</option>
                                     <t t-foreach="availableProducts.items"
                                         t-as="p"
@@ -133,31 +146,447 @@
                             </div>
                         </t>
                     </div>
-                    <div class="mt-auto d-flex justify-content-end border-top p-3">
-                        <t t-if="localAddress.status === 'visited'">
-                            <button class="btn btn-secondary mx-1"
-                                t-on-click="saveProducts">
-                                    Guardar cantidades
-                            </button>
-                        </t>
-                        <button class="btn btn-primary mx-1"
-                            t-on-click="nextStep">
-                                Siguiente paso
-                        </button>
-                    </div>
                 </t>
-                <t t-elif="localAddress.currentStep === 1">
-                    <div class="pt-3 w-100 h-100">
-                        <h1 class="fs-1 mb-3 text-center">Ventas</h1>
-                    </div>
 
-                    <div class="mt-auto d-flex justify-content-end border-top p-3">
-                        <button class="btn btn-secondary mx-1"
-                            t-on-click="returnStep">
-                                Regresar
-                        </button>
+                <!-- Venta -->
+                <t t-elif="localAddress.currentStep === 1">
+                    <div class="pt-3 w-100 h-100 overflow-auto">
+                        <h1 class="fs-1 mb-3 text-center">Venta</h1>
+                        <t t-if="localAddress.sale_order_id">
+                            <div class="d-flex flex-column">
+                                <div class="d-flex flex-column text-sm-start text-center flex-sm-row justify-content-between align-items-center p-3 border-bottom">
+                                    <div>
+                                        <h1>
+                                            <strong>Cotización #<t t-esc="localAddress.sale_details.name"/>
+                                            </strong>
+                                        </h1>
+                                    </div>
+                                    <span class="badge rounded-pill px-3 py-2 fs-4 my-1"
+                                        t-att-class="{
+                                            'bg-secondary font-color-black-fixed': localAddress.sale_details.state === 'draft',
+                                            'bg-info font-color-white-fixed': localAddress.sale_details.state === 'sent',
+                                            'bg-success font-color-white-fixed': localAddress.sale_details.state === 'sale',
+                                            'bg-danger font-color-white-fixed': localAddress.sale_details.state === 'cancel'
+                                        }">
+                                        <t t-esc="statusSaleOrderLinesLabels[localAddress.sale_details.state]"/>
+                                    </span>
+                                </div>
+
+                                <div class="d-flex flex-column p-3 overflow-x-auto">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Cantidad</th>
+                                                <th>Precio</th>
+                                                <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="Array.isArray(localAddress.sale_order_lines_details) and localAddress.sale_order_lines_details.length > 0">
+                                                <t t-foreach="localAddress.sale_order_lines_details"
+                                                    t-as="line"
+                                                    t-key="line.id">
+                                                    <tr>
+                                                        <td>
+                                                            <t t-esc="line.product_id[1]"/>
+                                                        </td>
+                                                        <td>
+                                                            <t t-esc="line.product_uom_qty"/>
+                                                        </td>
+                                                        <td>
+                                                            <t t-esc="line.price_unit"/>
+                                                        </td>
+                                                        <td>
+                                                            <t t-esc="line.price_subtotal"/>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </t>
+                                            <t t-else="">
+                                                <tr>
+                                                    <td colspan="4">No hay líneas en esta cotización.</td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="d-flex flex-column p-3 border-top">
+                                    <div class="d-flex flex-column flex-sm-row justify-content-between">
+                                        <div>
+                                            <h2>Términos de pago:</h2>
+                                            <select class="form-select mb-3"
+                                                t-att-disabled="['sale', 'cancel'].includes(localAddress.sale_details.state)"
+                                                t-att-value="localAddress.sale_details.payment_term_id and localAddress.sale_details.payment_term_id[0] || ''"
+                                                t-on-change="onPaymentTermChange">
+                                                <t t-foreach="localAddress.paymentTerms"
+                                                    t-as="term"
+                                                    t-key="term.id">
+                                                    <option t-att-value="term.id"
+                                                        t-att-selected="localAddress.sale_details.payment_term_id and localAddress.sale_details.payment_term_id[0] === term.id">
+                                                        <t t-esc="term.name"/>
+                                                    </option>
+                                                </t>
+                                            </select>
+                                        </div>
+
+                                        <div class="mt-3 d-flex flex-column justify-content-center align-items-end w-sm-50">
+                                            <h2 class="text-center w-100">
+                                                <strong>Totales</strong>
+                                            </h2>
+
+                                            <table class="table table-sm fs-4 w-100">
+                                                <tr>
+                                                    <td class="text-end mr-1 w-50 px-2">total sin impuestos:</td>
+                                                    <td class="text-start px-2">$                                                        <t t-esc="localAddress.sale_details.amount_untaxed"/>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-end mr-1 w-50 px-2">total impuestos:</td>
+                                                    <td class="text-start px-2">$                                                        <t t-esc="localAddress.sale_details.amount_tax"/>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-end mr-1 w-50 px-2">
+                                                        <strong class="p-0">total:</strong>
+                                                    </td>
+                                                    <td class="text-start px-2">
+                                                        <strong class="p-0">$                                                            <t t-esc="localAddress.sale_details.amount_total"/>
+                                                        </strong>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="d-flex flex-column justify-content-center align-items-center p-5">
+                                <h1 class="text-center">No se ha generado una cotización para este cliente.</h1>
+                            </div>
+                        </t>
                     </div>
                 </t>
+
+                <!-- Inventario -->
+                <t t-elif="localAddress.currentStep === 2">
+                    <div class="pt-3 w-100 h-100 overflow-auto">
+                        <h1 class="fs-1 mb-3 text-center">Inventario</h1>
+                        <t t-if="localAddress.stock_picking_id">
+                            <div class="d-flex flex-column">
+                                <div class="d-flex flex-column text-sm-start text-center flex-sm-row justify-content-between align-items-center p-3 border-bottom">
+                                    <div>
+                                        <h1>
+                                            <strong>Entrega <t t-esc="localAddress.stock_picking_details.name"/>
+                                            </strong>
+                                        </h1>
+                                    </div>
+                                    <span class="badge rounded-pill px-3 py-2 fs-4 my-1"
+                                        t-att-class="{
+                                            'bg-secondary font-color-black-fixed': localAddress.stock_picking_details.state === 'draft',
+                                            'bg-info font-color-white-fixed': localAddress.stock_picking_details.state === 'waiting',
+                                            'bg-primary font-color-white-fixed': localAddress.stock_picking_details.state === 'confirmed',
+                                            'bg-secondary font-color-black-fixed': localAddress.stock_picking_details.state === 'assigned',
+                                            'bg-success font-color-white-fixed': localAddress.stock_picking_details.state === 'done',
+                                            'bg-danger font-color-white-fixed': localAddress.stock_picking_details.state === 'cancel'
+                                        }">
+                                        <t t-esc="statusStockPickingLabels[localAddress.stock_picking_details.state]"/>
+                                    </span>
+
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-column p-3 overflow-x-auto">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Demanda</th>
+                                            <th>Cantidad</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-if="Array.isArray(localAddress.stock_picking_line_details) and localAddress.stock_picking_line_details.length > 0">
+                                            <t t-foreach="localAddress.stock_picking_line_details"
+                                                t-as="line"
+                                                t-key="line.id">
+                                                <tr>
+                                                    <td>
+                                                        <t t-esc="line.product_id[1]"/>
+                                                    </td>
+                                                    <td>
+                                                        <t t-esc="line.product_uom_qty"/>
+                                                    </td>
+                                                    <td>
+                                                        <t t-esc="line.quantity"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                        <t t-else="">
+                                            <tr>
+                                                <td colspan="4">No hay líneas en esta entrega.</td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="d-flex flex-column p-3"
+                                t-if="localAddress.stock_picking_details.customer_signature">
+                                <h3 class="text-center">Firma del cliente</h3>
+                                <img t-att-src="'data:image/png;base64,' + localAddress.stock_picking_details.customer_signature"
+                                    style="max-width: 100%; height:200px;"
+                                    alt="Firma del cliente"
+                                    class="border border-black" />
+                            </div>
+
+                            <div t-if="state.showSignatureModal"
+                                class="modal d-block"
+                                tabindex="-1">
+                                <div class="absotule top-0 start-0 w-100 h-100 bg-dark bg-opacity-25 d-flex justify-content-center align-items-center p-5"
+                                    style="backdrop-filter: blur(5px);">
+                                    <div class="w-100 d-flex flex-column delivery-pos-card">
+                                        <div class="d-flex flex-row justify-content-between align-items-center p-3 border-bottom">
+                                            <h5 class="modal-title">Firma del cliente</h5>
+                                            <button type="button"
+                                                class="btn-close"
+                                                t-on-click="closeSignatureModal"/>
+                                        </div>
+                                        <div class="modal-body text-center">
+                                            <canvas t-ref="signatureCanvas"
+                                                width="614"
+                                                height="204"
+                                                style="border:1px solid #000; width:100%; height:200px;">
+                                            </canvas>
+                                        </div>
+                                        <div class="modal-footer p-2 d-flex justify-content-end">
+                                            <button class="btn btn-secondary mx-1"
+                                                t-on-click="clearSignature">Limpiar</button>
+                                            <button class="btn btn-primary mx-1"
+                                                t-on-click="saveSignature">Guardar firma</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 text-center">
+                                <button type="button"
+                                    class="btn btn-primary"
+                                    t-if="['draft', 'waiting', 'confirmed', 'assigned'].includes(localAddress.stock_picking_details.state) and localAddress.stock_picking_id !== false"
+                                    t-on-click="openSignatureModal">
+                                        Dibujar firma
+                                </button>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="d-flex flex-column justify-content-center align-items-center p-5">
+                                <h1 class="text-center">No se ha generado una entrega para este cliente.</h1>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Factura -->
+                <t t-elif="localAddress.currentStep === 3">
+                    <div class="pt-3 w-100 h-100 overflow-auto">
+                        <h1 class="fs-1 mb-3 text-center">Factura</h1>
+                        <t t-if="localAddress.invoice_ids and localAddress.invoice_ids.length > 0">
+                            <div class="d-flex flex-column">
+                                <t t-foreach="localAddress.invoice_details"
+                                    t-as="inv"
+                                    t-key="inv.id">
+                                    <div class="d-flex flex-column text-sm-start text-center flex-sm-row justify-content-between align-items-center p-3 border-bottom">
+                                        <div>
+                                            <h1>
+                                                <strong>Factura <t t-if="inv.name"
+                                                    t-esc="inv.name"/>
+                                                </strong>
+                                            </h1>
+                                        </div>
+                                        <span class="badge rounded-pill px-3 py-2 fs-4 my-1"
+                                            t-att-class="{
+                                                'bg-secondary font-color-black-fixed': inv.state === 'draft',
+                                                'bg-success font-color-white-fixed': inv.state === 'posted',
+                                                'bg-danger font-color-white-fixed': inv.state === 'cancel'
+                                            }">
+                                            <t t-esc="statusInvoiceLabels[inv.state]"/>
+                                        </span>
+                                    </div>
+
+                                    <div class="d-flex flex-column p-3 overflow-x-auto">
+                                        <table class="table mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Producto</th>
+                                                    <th>Cantidad</th>
+                                                    <th>Precio</th>
+                                                    <th>Importe</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-if="invoiceLinesById[inv.id] and invoiceLinesById[inv.id].length > 0">
+                                                    <t t-foreach="invoiceLinesById[inv.id]"
+                                                        t-as="line"
+                                                        t-key="line.id">
+                                                        <tr>
+                                                            <td>
+                                                                <t t-esc="line.product_id[1]"/>
+                                                            </td>
+                                                            <td>
+                                                                <t t-esc="line.quantity"/>
+                                                            </td>
+                                                            <td>
+                                                                <t t-esc="line.price_unit"/>
+                                                            </td>
+                                                            <td>
+                                                                <t t-esc="line.price_subtotal"/>
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                </t>
+                                                <t t-else="">
+                                                    <tr>
+                                                        <td colspan="4">No hay líneas en esta factura.</td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="mt-3 d-flex flex-column justify-content-center align-items-end w-100">
+                                        <h2 class="text-center ml-auto w-50">
+                                            <strong>Totales</strong>
+                                        </h2>
+
+                                        <table class="table table-sm fs-4 ml-auto w-50">
+                                            <tr>
+                                                <td class="text-end mr-1 w-50 px-2">total sin impuestos:</td>
+                                                <td class="text-start px-2">$                                                    <t t-esc="inv.amount_untaxed"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-end mr-1 w-50 px-2">total impuestos:</td>
+                                                <td class="text-start px-2">$                                                    <t t-esc="inv.amount_tax"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-end mr-1 w-50 px-2">
+                                                    <strong class="p-0">total:</strong>
+                                                </td>
+                                                <td class="text-start px-2">
+                                                    <strong class="p-0">$                                                        <t t-esc="inv.amount_total"/>
+                                                    </strong>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <div class="d-flex flex-row justify-content-center align-items-center p-3">
+                                        <button class="btn btn-primary mx-1"
+                                            t-if="inv.state === 'draft'"
+                                            t-on-click="() => confirmInvoice(inv.id)">
+                                            Confirmar factura
+                                        </button>
+                                        <button class="btn btn-secondary mx-1"
+                                            t-if="inv.state !== 'draft'"
+                                            t-on-click="() => onPrintInvoiceTicket(inv.id)">
+                                            Imprimir Ticket
+                                        </button>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="d-flex flex-column justify-content-center align-items-center p-5">
+                                <t t-if="localAddress.sale_details and localAddress.sale_details.state === 'sale'">
+                                    <button class="btn btn-primary mx-1"
+                                        t-on-click="createInvoice">
+                                        <i class="fa fa-plus me-2"/>
+                                    Generar factura
+                                    </button>
+                                </t>
+                                <t t-else="">
+                                    <div class="d-flex flex-column justify-content-center align-items-center p-5">
+                                        <h1 class="text-center">No hay facturas generadas para este cliente.</h1>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+
+                <div class="mt-auto d-flex flex-row justify-content-end border-top p-3 w-100">
+                    <!-- Pedido -->
+                    <t t-if="localAddress.status === 'visited' and localAddress.currentStep === 0">
+                        <button class="btn btn-secondary mx-1"
+                            t-on-click="onPrintRouteTicket">Imprimir Ticket
+                        </button>
+
+                        <button class="btn btn-secondary mx-1"
+                            t-on-click="saveProducts"
+                            t-if="localAddress.sale_order_id === false">
+                            Guardar cantidades
+                        </button>
+
+                        <button class="btn btn-primary mx-1"
+                            t-on-click="createSaleOrder"
+                            t-if="
+                                localAddress.product_lines
+                                    .map(line => line.quantity)
+                                    .reduce((a, b) => a + b, 0) > 0
+                                and localAddress.sale_order_id === false
+                            ">
+                            Generar cotización
+                        </button>
+                    </t>
+
+                    <!-- Venta -->
+                    <t t-if="localAddress.currentStep === 1">
+                        <button class="btn btn-primary mx-1"
+                            t-on-click="confirmSaleOrder"
+                            t-if="['draft', 'sent'].includes(localAddress.sale_details.state)">
+                            Confirmar venta
+                        </button>
+                    </t>
+
+                    <!-- Inventario -->
+                    <t t-if="localAddress.currentStep === 2">
+                        <button class="btn btn-secondary mx-1"
+                            t-on-click="onPrintDeliveryTicket">Imprimir Ticket
+                        </button>
+
+                        <button class="btn btn-primary mx-1"
+                            t-on-click="confirmStockPicking"
+                            t-if="
+                                localAddress.stock_picking_details.customer_signature 
+                                and ['draft', 'waiting', 'confirmed', 'assigned'].includes(localAddress.stock_picking_details.state) 
+                                and localAddress.stock_picking_id !== false
+                                and (localAddress.stock_picking_line_details
+                                    .map(line => line.quantity)
+                                    .reduce((a,b) => a + b, 0)
+                                    === localAddress.stock_picking_line_details
+                                        .map(line => line.product_uom_qty)
+                                        .reduce((a,b) => a + b, 0))
+                            ">
+                            Confirmar entrega
+                        </button>
+                    </t>
+
+                    <button class="btn btn-secondary mx-1"
+                        t-on-click="returnStep"
+                        t-if="canGoBack">
+                        Regresar
+                    </button>
+                    <button class="btn btn-primary mx-1"
+                        t-on-click="nextStep"
+                        t-if="canGoNext">
+                        Siguiente paso
+                    </button>
+                </div>
             </div>
         </div>
     </t>

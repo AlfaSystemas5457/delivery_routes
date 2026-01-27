@@ -35,6 +35,7 @@
             "delivery_routes/static/src/components/**/*.xml",
             "delivery_routes/static/src/components/**/*.js",
             "delivery_routes/static/src/components/**/*.scss",
+            "https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js",
         ]
     },
     "post_init_hook": "post_init_hook",

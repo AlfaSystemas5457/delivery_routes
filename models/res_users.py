@@ -23,14 +23,12 @@ class ResUsers(models.Model):
             "delivery_routes.group_route_access_all", raise_if_not_found=False
         )
 
-        for user in self:
-            if not group_assigned or not group_all:
-                continue
+        if not group_assigned or not group_all:
+            return
 
-            # Limpiar grupos
+        for user in self:
             user.groups_id = user.groups_id - group_assigned - group_all
 
-            # Asignar grupo adecuado
             if user.access_scope == "assigned":
                 user.groups_id = user.groups_id | group_assigned
             else:

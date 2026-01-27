@@ -41,16 +41,19 @@ class Route(models.Model):
         tracking=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if not vals.get("name"):
-            vals["name"] = self.env["ir.sequence"].next_by_code("route.route.sequence")
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("name"):
+                vals["name"] = self.env["ir.sequence"].next_by_code(
+                    "route.route.sequence"
+                )
+        return super().create(vals_list)
 
     @api.constrains("warehouse_id")
     def _check_single_warehouse(self):
         for record in self:
-            if len(record.warehouse_id) > 1:
+            if not record.warehouse_id:
                 raise exceptions.ValidationError("Solo puedes seleccionar un almacén.")
 
     @api.model
@@ -157,9 +160,11 @@ class RouteSaleAddress(models.Model):
         compute="_compute_state",
     )
     ticket_pdf = fields.Binary(string="Ticket PDF", readonly=True)
+    current_step = fields.Integer(default=0)
 
     def _compute_state(self):
-        self.state = self.route_id.state
+        for rec in self:
+            rec.state = rec.route_id.state
 
     def _validations(self):
         if not self.contact:
@@ -203,7 +208,20 @@ class RouteSaleAddress(models.Model):
             report_obj.report_name, [self.id]
         )
 
-        self.ticket_pdf = base64.b64encode(pdf_content)
+        self.ticket_pdf = base64.b64encode(pdf_content).decode("utf-8")
+
+    def get_ticket_pos(self):
+        self.ensure_one()
+
+        if not self.ticket_pdf:
+            self.generate_ticket()
+
+        ticket_b64 = self.ticket_pdf
+
+        return {
+            "ticket_pdf": ticket_b64,
+            "filename": f"ticket_{self.id}.pdf",
+        }
 
     def handle_button_sale(self):
         self.ensure_one()
@@ -215,6 +233,7 @@ class RouteSaleAddress(models.Model):
                     "partner_id": record.contact.id,
                     "origin": "Ruta: %s" % (record.route_id.name or ""),
                     "warehouse_id": record.route_id.warehouse_id.id,
+                    "user_id": self.env.user.id,
                 }
             )
 
@@ -266,12 +285,13 @@ class RouteSaleAddress(models.Model):
         if self.contact:
             self.address = self._compute_address_from_contact(self.contact)
 
-    @api.model
-    def create(self, vals):
-        if vals.get("contact") and not vals.get("address"):
-            contact = self.env["res.partner"].browse(vals["contact"])
-            vals["address"] = self._compute_address_from_contact(contact)
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("contact") and not vals.get("address"):
+                contact = self.env["res.partner"].browse(vals["contact"])
+                vals["address"] = self._compute_address_from_contact(contact)
+        return super().create(vals_list)
 
     def write(self, vals):
         if vals.get("contact") and not vals.get("address"):
@@ -345,6 +365,7 @@ class RouteSaleAddress(models.Model):
                     "quantity",
                 ]
             ),
+            "sale_order_id": self.sale_order_id.id if self.sale_order_id else False,
         }
 
     def action_update_status(self, status):
@@ -390,6 +411,38 @@ class RouteSaleAddress(models.Model):
             "quantity": line.quantity,
         }
 
+    def handle_button_sale_terminal(self):
+        self.ensure_one()
+        self.generate_ticket()
+
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": self.contact.id,
+                "origin": "Ruta: %s" % (self.route_id.name or ""),
+                "warehouse_id": self.route_id.warehouse_id.id,
+                "user_id": self.env.user.id,
+            }
+        )
+
+        for line in self.product_lines:
+            if line.quantity > 0:
+                self.env["sale.order.line"].create(
+                    {
+                        "order_id": order.id,
+                        "product_id": line.product_id.id,
+                        "product_uom_qty": line.quantity,
+                        "price_unit": line.product_id.lst_price,
+                        "name": line.product_id.name,
+                    }
+                )
+
+        self.sale_order_id = order
+        self.status = "visited"
+
+        return {
+            "sale_order_id": order.id,
+        }
+
 
 class RouteSaleProductLine(models.Model):
     _name = "route.sale.product.line"
@@ -412,7 +465,6 @@ class Address(models.Model):
     salesperson_ids = fields.Many2many(
         "res.users",
         string="Repartidores",
-        ondelete="cascade",
         required=True,
         tracking=True,
     )
@@ -429,7 +481,6 @@ class Address(models.Model):
     route_address_ids = fields.Many2many(
         "res.partner",
         relation="route_address_partner_rel",
-        ondelete="cascade",
         string="Direcciones",
         required=True,
         tracking=True,

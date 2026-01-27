@@ -22,14 +22,16 @@
             <kanban class="o_kanban_small_column">
                 <templates>
                     <t t-name="card">
-                        <div class="o_kanban_record_body">
-                            <div class="o_kanban_primary">
-                                <field name="name"/>
+                        <div class="o_kanban_record_body d-flex flex-row justify-content-between align-items-center w-100">
+                            <div class="d-flex flex-column">
+                                <div class="o_kanban_primary">
+                                    <field name="name"/>
+                                </div>
+                                <div class="o_kanban_secondary">
+                                    <field name="driver_id"/>
+                                </div>
                             </div>
-                            <div class="o_kanban_secondary">
-                                <field name="driver_id"/>
-                            </div>
-                            <div class="mt-2">
+                            <div class="m-0">
                                 <button name="%(delivery_routes.action_delivery_pos_gui)d"
                                     type="action"
                                     class="btn btn-primary w-100">
@@ -57,11 +59,17 @@
                         class="oe_highlight"/>
                 </header>
                 <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"
+                                placeholder="Nombre del Terminal"/>
+                        </h1>
+                    </div>
                     <group>
-                        <field name="name"/>
                         <field name="driver_id"/>
                     </group>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
