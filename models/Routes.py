@@ -443,6 +443,15 @@ class RouteSaleAddress(models.Model):
             "sale_order_id": order.id,
         }
 
+    def get_geolocation(self):
+        self.ensure_one()
+        lat = self.contact.partner_latitude or 0
+        lng = self.contact.partner_longitude or 0
+        return {
+            "latitude": lat,
+            "longitude": lng,
+        }
+
 
 class RouteSaleProductLine(models.Model):
     _name = "route.sale.product.line"
