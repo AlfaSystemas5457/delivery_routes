@@ -103,6 +103,35 @@ export class CustomerCard extends Component {
         return this.localAddress.currentStep > 0;
     }
 
+    async openMap() {
+        try {
+            const geo_locateion = await this.orm.call(
+                "route.sale.address",
+                "get_geolocation",
+                [[this.localAddress.id]]
+            );
+
+            if (geo_locateion.latitude === 0 && geo_locateion.longitude === 0) {
+                this.notification.add(
+                    "La dirección no tiene coordenadas geográficas.",
+                    { type: "warning" }
+                );
+                return;
+            }
+
+            const latitude = geo_locateion.latitude;
+            const longitude = geo_locateion.longitude;
+            const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+            window.open(url, '_blank');
+
+        } catch (error) {
+            this.notification.add(
+                "Error al abrir el mapa: " + error.message,
+                { type: "danger" }
+            );
+        }
+    }
+
     async loadProducts() {
         try {
             const result = await this.orm.call(
