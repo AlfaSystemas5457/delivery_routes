@@ -31,7 +31,8 @@
                             <field name="warehouse_id"
                                 placeholder="Seleccione un almacen" />
                             <field name="dates"
-                                placeholder="Seleccione un dia" />
+                                placeholder="Seleccione un dia"
+                                widget="many2many_tags"/>
                         </group>
                     </group>
                     <notebook>

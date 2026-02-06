@@ -152,10 +152,6 @@ export class CustomerCard extends Component {
             await this.loadPaymentTerms();
             await this.getStockPickingDetails();
             await this.getInvoiceDetails();
-            // this.notification.add(
-            //     "Productos cargados correctamente",
-            //     { type: "success" }
-            // );
         } catch (error) {
             this.notification.add(
                 "Error al cargar productos: " + error.message,

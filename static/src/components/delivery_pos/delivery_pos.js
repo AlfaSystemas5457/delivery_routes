@@ -7,8 +7,8 @@ import { CustomerCard } from "../customer_card/customer_card";
 
 export class DeliveryPosView extends Component {
     static template = "delivery_routes.DeliveryPosView";
-
     static components = { AddressCard, CustomerCard };
+    static props = { "*": true };
 
     setup() {
         this.orm = useService("orm");
@@ -46,7 +46,7 @@ export class DeliveryPosView extends Component {
             const routes = await this.orm.searchRead(
                 "route.route",
                 [["user_id", "=", this.state.config.driver_id[0]], ["state", "!=", "end"]],
-                ["name", "state", "route_address_ids", "product", "description"],
+                ["name", "state", "route_address_ids", "product", "description", "amount_total"],
                 { limit: 1 }
             );
 
@@ -132,7 +132,22 @@ export class DeliveryPosView extends Component {
     }
 
     onSelectAddress(address) {
+        if (this.state.activeRoute.state !== 'process') {
+            alert('No se ha iniciado la ruta.');
+            return;
+        }
         this.state.selectedAddress = address;
+    }
+
+    async onDeleteAddress(address) {
+        try {
+            await this.orm.unlink("route.sale.address", [address.id]);
+            this.notification.add("Dirección eliminada correctamente", { type: "success" });
+            await this._loadData();
+        } catch (error) {
+            this.notification.add("Error al eliminar la dirección: " + error.message, { type: "danger" });
+        }
+
     }
 
     async onCloseAddressDetails() {

@@ -24,6 +24,11 @@ class Route(models.Model):
     product = fields.Many2many("product.product", string="Productos", tracking=True)
     description = fields.Text(string="Descripción", tracking=True)
     address = fields.Char(string="Primera Dirección", tracking=True)
+    route_id = fields.Many2one(
+        "route.address",
+        string="Ruta",
+        tracking=True,
+    )
     route_address_ids = fields.One2many(
         "route.sale.address", "route_id", string="Direcciones", tracking=True
     )
@@ -40,6 +45,25 @@ class Route(models.Model):
         default="start",
         tracking=True,
     )
+    amount_total = fields.Float(
+        string="Total de la Ruta", compute="_compute_amount_total", store=True
+    )
+    currency_id = fields.Many2one(
+        "res.currency",
+        string="Currency",
+        default=lambda self: self.env.company.currency_id,
+        required=True,
+    )
+
+    @api.depends("route_address_ids.sale_order_id.amount_total")
+    def _compute_amount_total(self):
+        for record in self:
+            total = 0.0
+            for address in record.route_address_ids:
+                total += (
+                    address.sale_order_id.amount_total if address.sale_order_id else 0.0
+                )
+            record.amount_total = total
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -55,6 +79,43 @@ class Route(models.Model):
         for record in self:
             if not record.warehouse_id:
                 raise exceptions.ValidationError("Solo puedes seleccionar un almacén.")
+
+    def _get_route_address_lines_from_route(self, route):
+        lines = []
+        if not route:
+            return lines
+
+        for partner in route.route_address_ids:
+            lines.append(
+                (
+                    0,
+                    0,
+                    {
+                        "contact": partner.id,
+                        "address": self.env[
+                            "route.sale.address"
+                        ]._compute_address_from_contact(partner),
+                        "status": "pending",
+                    },
+                )
+            )
+        return lines
+
+    def action_reload_route_address_ids(self):
+        for rec in self:
+            if rec.state != "start":
+                raise exceptions.UserError("No se puede modificar en este estado.")
+
+            if not rec.route_id:
+                raise exceptions.UserError("No hay ruta seleccionada para recargar.")
+
+            new_lines = rec._get_route_address_lines_from_route(rec.route_id)
+
+            if not new_lines:
+                raise exceptions.UserError("La ruta no tiene direcciones para cargar.")
+
+            rec.write({"route_address_ids": [(5, 0, 0)] + new_lines})
+        return True
 
     @api.model
     def default_get(self, fields):
@@ -76,7 +137,7 @@ class Route(models.Model):
         today = DAYS[datetime.now(local_tz).weekday()]
 
         address = self.env["route.address"].search(
-            [("dates", "=", today), ("salesperson_ids.id", "=", self.env.user.id)],
+            [("dates.code", "=", today), ("salesperson_ids.id", "=", self.env.user.id)],
             order="create_date desc",
             limit=1,
         )
@@ -90,6 +151,7 @@ class Route(models.Model):
                 "salesperson_ids": [(6, 0, address.salesperson_ids.ids)],
                 "product": [(6, 0, address.product.ids)],
                 "warehouse_id": address.warehouse_id.id,
+                "route_id": address.id,
             }
         )
 
@@ -225,7 +287,6 @@ class RouteSaleAddress(models.Model):
 
     def handle_button_sale(self):
         self.ensure_one()
-        self.generate_ticket()
 
         for record in self:
             order = self.env["sale.order"].create(
@@ -251,6 +312,7 @@ class RouteSaleAddress(models.Model):
 
             record.sale_order_id = order
             record.status = "visited"
+            record.generate_ticket()
             return {
                 "type": "ir.actions.act_window",
                 "res_model": "sale.order",
@@ -495,16 +557,8 @@ class Address(models.Model):
         tracking=True,
         domain="[('user_id', 'in', salesperson_ids)]",
     )
-    dates = fields.Selection(
-        [
-            ("monday", "Lunes"),
-            ("tuesday", "Martes"),
-            ("wednesday", "Miércoles"),
-            ("thursday", "Jueves"),
-            ("friday", "Viernes"),
-            ("saturday", "Sábado"),
-            ("sunday", "Domingo"),
-        ],
+    dates = fields.Many2many(
+        "res.days",
         string="Día",
         required=True,
         tracking=True,

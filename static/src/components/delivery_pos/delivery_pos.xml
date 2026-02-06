@@ -3,7 +3,7 @@
 <templates id="template"
     xml:space="preserve">
     <t t-name="delivery_routes.DeliveryPosView">
-        <div class="delivery-pos-card pos-container d-flex flex-column h-100">
+        <div class="delivery-pos-card o-view-background-color bg-delivery pos-container d-flex flex-column h-100">
             <t t-if="state.selectedAddress">
                 <CustomerCard address="state.selectedAddress"
                     onClose="() => this.onCloseAddressDetails()"
@@ -93,6 +93,16 @@
                                             </t>
                                         </ul>
                                     </div>
+
+                                    <t t-if="route.amount_total">
+                                        <div>
+                                            <h3 class="mb-3 mt-4">Total de la Ruta:</h3>
+                                            <span class="fs-4">
+                                            $                                                <t t-out="route.amount_total"/>
+                                            </span>
+                                        </div>
+                                    </t>
+
                                 </t>
                                 <t t-else="">
                                     <div class="p-4 text-center text-muted">
@@ -105,25 +115,13 @@
                         <div class="d-flex flex-column shadow border rounded-lg">
                             <div class="d-md-flex flex-md-wrap shadow-sm">
                                 <t t-if="state.route_address_ids.length > 0">
-                                    <t t-if="route.state !== 'process'">
-                                        <div class="p-4 w-100 text-center">
-                                            <h2 class="mb-3 text-danger">
-                                                <strong>
-                                                Ruta no iniciada
-                                                </strong>
-                                            </h2>
-                                            <span class="text-danger fs-5">
-                                                Debes iniciar la ruta para gestionar las direcciones.
-                                            </span>
-                                        </div>
-                                    </t>
-                                    <t t-else="">
-                                        <t t-foreach="state.route_address_ids"
-                                            t-as="addr"
-                                            t-key="addr.id">
-                                            <AddressCard address="addr"
-                                                onClick="(a) => this.onSelectAddress(a)" />
-                                        </t>
+                                    <t t-foreach="state.route_address_ids"
+                                        t-as="addr"
+                                        t-key="addr.id">
+                                        <AddressCard address="addr"
+                                            routeState="route.state"
+                                            onClick="(a) => this.onSelectAddress(a)"
+                                            onDelete="(a) => this.onDeleteAddress(a)" />
                                     </t>
                                 </t>
                                 <t t-else="">

@@ -33,6 +33,11 @@
                                 <t t-esc="dict(record.fields_get(allfields=['status'])['status']['selection'])[record.status]" />
                                 <br/>
                             </span>
+                            <span t-if="record.sale_order_id.user_id">
+                                <strong>Agente:</strong>
+                                <t t-esc="record.sale_order_id.user_id.name" />
+                                <br/>
+                            </span>
                         </div>
 
                         <h4>Productos:</h4>

@@ -6,7 +6,9 @@ export class AddressCard extends Component {
 
     static props = {
         address: Object,
+        routeState: { type: String, optional: true },
         onClick: Function,
+        onDelete: Function,
     };
 
     get statusLabel() {

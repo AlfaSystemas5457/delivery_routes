@@ -13,6 +13,7 @@
         "security/ir.model.access.csv",
         "security/groups_security.xml",
         "security/route_security.xml",
+        "data/days_data.xml",
         "report/paperformat.xml",
         "report/report.xml",
         "report/report_delivery.xml",
@@ -35,8 +36,12 @@
             "delivery_routes/static/src/components/**/*.xml",
             "delivery_routes/static/src/components/**/*.js",
             "delivery_routes/static/src/components/**/*.scss",
+            ("remove", "delivery_routes/static/src/components/**/*.dark.scss"),
             "https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js",
-        ]
+        ],
+        "web.assets_web_dark": [
+            "delivery_routes/static/src/components/**/*.dark.scss",
+        ],
     },
     "post_init_hook": "post_init_hook",
     "installable": True,

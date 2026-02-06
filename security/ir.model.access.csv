@@ -4,3 +4,4 @@ access_route_address,access_route_address,model_route_address,base.group_user,1,
 access_route_sale_address,access_route_sale_address,model_route_sale_address,base.group_user,1,1,1,1
 access_route_sale_product_line,access_route_sale_product_line,model_route_sale_product_line,base.group_user,1,1,1,1
 access_delivery_config,access_delivery_config,model_delivery_config,base.group_user,1,1,1,1
+access_delivery_res_days,access_delivery_res_days,model_res_days,base.group_user,1,1,1,1

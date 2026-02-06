@@ -63,17 +63,32 @@
                                 widget="many2many_tags"
                                 options="{'no_create': True}"
                                 readonly="1"
-                                placeholder="Selecciona los repartidores" />
+                                placeholder="Selecciona los repartidores"/>
                             <field name="warehouse_id"
-                                readonly="1" />
+                                readonly="1"/>
+                            <field name="currency_id"
+                                invisible="1"/>
+                            <field name="amount_total"
+                                readonly="1"/>
+                        </group>
+                        <group>
+                            <button string="Recargar direcciones"
+                                name="action_reload_route_address_ids"
+                                type="object"
+                                readonly="state != 'start'"
+                                invisible="state != 'start'"
+                                class="oe_highlight"
+                                colspan="4"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Direcciones">
                             <field name="route_address_ids"
-                                readonly="state != 'process'">
-                                <list create="false"
-                                    delete="false">
+                                readonly="state == 'end'">
+                                <list create="false">
+                                    <control>
+                                        <delete invisible="parent.state != 'start'"/>
+                                    </control>
                                     <field name="contact" />
                                     <field name="address"
                                         readonly="1" />

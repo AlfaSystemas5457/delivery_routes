@@ -20,6 +20,10 @@
                                 <span t-if="record.partner_id.zip"
                                     t-field="record.partner_id.zip"/>
                             </div>
+                            <div t-if="record.invoice_user_id">
+                                <strong>Agente:</strong>
+                                <t t-esc="record.invoice_user_id.name" />
+                            </div>
                         </div>
 
                         <h4>Productos:</h4>
