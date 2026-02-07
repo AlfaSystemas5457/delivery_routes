@@ -205,8 +205,8 @@ class RouteSaleAddress(models.Model):
     status = fields.Selection(
         [
             ("pending", "Pendiente"),
-            ("visited", "Visitado con pedido"),
             ("skipped", "Visitado sin pedido"),
+            ("visited", "Visitado con pedido"),
         ],
         string="Estado de la visita",
         default="pending",
@@ -221,6 +221,25 @@ class RouteSaleAddress(models.Model):
         string="Estado de la Ruta",
         compute="_compute_state",
     )
+
+    refund_id = fields.Many2one(
+        "stock.picking", string="Movimiento de devolución", readonly=True
+    )
+    is_refund = fields.Boolean(string="Hay devolución?", default=False)
+    is_refunded = fields.Boolean(string="Devuelto?", default=False)
+    return_lines = fields.One2many(
+        "route.sale.return.line", "sale_address_id", string="Productos a devolver"
+    )
+
+    tasting_id = fields.Many2one(
+        "stock.picking", string="Movimiento de degustación", readonly=True
+    )
+    is_tasting = fields.Boolean(string="Hay degustación?", default=False)
+    is_tasted = fields.Boolean(string="Degustado?", default=False)
+    tasting_lines = fields.One2many(
+        "route.sale.tasting.line", "sale_address_id", string="Productos a devolver"
+    )
+
     ticket_pdf = fields.Binary(string="Ticket PDF", readonly=True)
     current_step = fields.Integer(default=0)
 
@@ -250,6 +269,154 @@ class RouteSaleAddress(models.Model):
     #                     (0, 0, {"product_id": product.id, "quantity": 0.0})
     #                 )
     #             record.product_lines = product_lines
+
+    def create_return_picking(self):
+        self.ensure_one()
+
+        Picking = self.env["stock.picking"]
+        Move = self.env["stock.move"]
+        MoveLine = self.env["stock.move.line"]
+
+        return_picking_type = self.env["stock.picking.type"].search(
+            [
+                ("code", "=", "incoming"),
+                ("warehouse_id", "=", self.route_id.warehouse_id.id),
+            ],
+            limit=1,
+        )
+        if not return_picking_type:
+            raise exceptions.UserError(
+                "No se encontró tipo de operación para devoluciones."
+            )
+
+        customer_loc = self.env["stock.location"].search(
+            [("usage", "=", "customer")], limit=1
+        )
+        if not customer_loc:
+            raise exceptions.UserError(
+                "Debes crear una ubicación de tipo Cliente (Customer) en Inventario."
+            )
+
+        warehouse_loc = self.route_id.warehouse_id.lot_stock_id
+
+        picking = Picking.create(
+            {
+                "partner_id": self.contact.id,
+                "picking_type_id": return_picking_type.id,
+                "location_id": customer_loc.id,
+                "location_dest_id": warehouse_loc.id,
+                "origin": f"Devolución Ruta {self.route_id.name}",
+            }
+        )
+
+        for line in self.return_lines:
+            if line.quantity <= 0:
+                continue
+
+            move = Move.create(
+                {
+                    "picking_id": picking.id,
+                    "product_id": line.product_id.id,
+                    "product_uom": line.product_id.uom_id.id,
+                    "product_uom_qty": 0,
+                }
+            )
+
+            MoveLine.create(
+                {
+                    "move_id": move.id,
+                    "location_id": picking.location_id.id,
+                    "location_dest_id": picking.location_dest_id.id,
+                    "product_id": line.product_id.id,
+                    "product_uom_id": line.product_id.uom_id.id,
+                    "lot_id": line.lot_id.id,
+                    "quantity": line.quantity,
+                }
+            )
+
+        picking.action_confirm()
+        picking.button_validate()
+
+        self.write({"is_refunded": True, "refund_id": picking.id})
+
+        return picking
+
+    def create_tasting_picking(self):
+        self.ensure_one()
+
+        Picking = self.env["stock.picking"]
+        Move = self.env["stock.move"]
+        MoveLine = self.env["stock.move.line"]
+
+        return_picking_type = self.env["stock.picking.type"].search(
+            [
+                ("code", "=", "outgoing"),
+                ("warehouse_id", "=", self.route_id.warehouse_id.id),
+            ],
+            limit=1,
+        )
+        if not return_picking_type:
+            raise exceptions.UserError(
+                "No se encontró tipo de operación para devoluciones."
+            )
+
+        customer_loc = self.env["stock.location"].search(
+            [("usage", "=", "customer")], limit=1
+        )
+        if not customer_loc:
+            raise exceptions.UserError(
+                "Debes crear una ubicación de tipo Cliente (Customer) en Inventario."
+            )
+
+        warehouse_loc = self.route_id.warehouse_id.lot_stock_id
+
+        picking = Picking.create(
+            {
+                "partner_id": self.contact.id,
+                "picking_type_id": return_picking_type.id,
+                "location_id": warehouse_loc.id,
+                "location_dest_id": customer_loc.id,
+                "origin": f"Degustación Ruta {self.route_id.name}",
+            }
+        )
+
+        for line in self.return_lines:
+            if line.quantity <= 0:
+                continue
+
+            move = Move.create(
+                {
+                    "picking_id": picking.id,
+                    "product_id": line.product_id.id,
+                    "product_uom": line.product_id.uom_id.id,
+                    "product_uom_qty": 0,
+                }
+            )
+
+            MoveLine.create(
+                {
+                    "move_id": move.id,
+                    "location_id": picking.location_id.id,
+                    "location_dest_id": picking.location_dest_id.id,
+                    "product_id": line.product_id.id,
+                    "product_uom_id": line.product_id.uom_id.id,
+                    "lot_id": line.lot_id.id,
+                    "quantity": line.quantity,
+                }
+            )
+
+        picking.action_confirm()
+
+        self.write({"is_tasted": True, "tasting_id": picking.id})
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Movimiento de degustación",
+            "res_model": "stock.picking",
+            "res_id": self.tasting_id.id,
+            "view_mode": "form",
+            "target": "current",
+        }
 
     def handle_button_ticket(self):
         self.ensure_one()
@@ -415,6 +582,34 @@ class RouteSaleAddress(models.Model):
                 for product in self.route_id.product
             ]
 
+        if not self.return_lines and not self.is_refunded:
+            if self.is_refund:
+                self.return_lines = [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": product.id,
+                            "quantity": 0.0,
+                        },
+                    )
+                    for product in self.route_id.product
+                ]
+
+        if not self.tasting_lines and not self.is_tasted:
+            if self.is_tasting:
+                self.tasting_lines = [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": product.id,
+                            "quantity": 0.0,
+                        },
+                    )
+                    for product in self.route_id.product
+                ]
+
         return {
             "id": self.id,
             "contact": self.contact.id if self.contact else False,
@@ -522,8 +717,75 @@ class RouteSaleProductLine(models.Model):
     sale_address_id = fields.Many2one(
         "route.sale.address", string="Dirección de Venta", ondelete="cascade"
     )
-    product_id = fields.Many2one("product.product", string="Producto", required=True)
+    # bug: Muestra todos lo productos
+    product_id = fields.Many2one(
+        "product.product",
+        string="Producto",
+        required=True,
+        # domain="[('id', 'in', sale_address_id.route_id.product)]",
+    )
     quantity = fields.Float(string="Cantidad", default=1.0)
+    lot_id = fields.Many2one(
+        "stock.lot", string="Lote", domain="[('product_id', '=', product_id)]"
+    )
+
+
+class RouteSaleReturnLine(models.Model):
+    _name = "route.sale.return.line"
+    _description = "Línea de productos a devolver"
+
+    sale_address_id = fields.Many2one(
+        "route.sale.address",
+        string="Dirección de venta",
+        ondelete="cascade",
+        required=True,
+    )
+    product_id = fields.Many2one(
+        "product.product",
+        string="Producto a devolver",
+        required=True,
+    )
+    quantity = fields.Float(
+        string="Cantidad a devolver",
+        required=True,
+    )
+    uom_id = fields.Many2one(
+        "uom.uom",
+        string="Unidad de medida",
+        required=True,
+        related="product_id.uom_id",
+        readonly=True,
+    )
+    lot_id = fields.Many2one("stock.lot", string="Lote")
+
+
+class RouteSaleTastingLine(models.Model):
+    _name = "route.sale.tasting.line"
+    _description = "Línea de productos para degustación"
+
+    sale_address_id = fields.Many2one(
+        "route.sale.address",
+        string="Dirección de venta",
+        ondelete="cascade",
+        required=True,
+    )
+    product_id = fields.Many2one(
+        "product.product",
+        string="Producto para degustación",
+        required=True,
+    )
+    quantity = fields.Float(
+        string="Cantidad para degustación",
+        required=True,
+    )
+    uom_id = fields.Many2one(
+        "uom.uom",
+        string="Unidad de medida",
+        required=True,
+        related="product_id.uom_id",
+        readonly=True,
+    )
+    lot_id = fields.Many2one("stock.lot", string="Lote")
 
 
 class Address(models.Model):
