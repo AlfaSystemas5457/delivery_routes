@@ -261,7 +261,12 @@
                                         t-if="localAddress.is_refund and localAddress.refund_id === false">
                                         <button class="btn btn-primary mx-1 fs-4"
                                             t-on-click="create_refund_picking"
-                                            t-att-disabled="localAddress.refund_id ? true : undefined">
+                                            t-att-disabled="localAddress.refund_id ? true : undefined"
+                                            t-if="
+                                                localAddress.return_lines
+                                                    .map(line => line.quantity)
+                                                    .reduce((a, b) => a + b, 0) > 0
+                                            ">
                                             Generar devolución
                                         </button>
                                     </div>
@@ -356,7 +361,12 @@
                                         t-if="localAddress.is_tasting and localAddress.tasting_id === false">
                                         <button class="btn btn-primary mx-1 fs-4"
                                             t-on-click="openSignatureModalTasting"
-                                            t-att-disabled="localAddress.tasting_id ? true : undefined">
+                                            t-att-disabled="localAddress.tasting_id ? true : undefined"
+                                            t-if="
+                                                localAddress.tasting_lines
+                                                    .map(line => line.quantity)
+                                                    .reduce((a, b) => a + b, 0) > 0
+                                            ">
                                             Agregar firma
                                         </button>
                                     </div>
