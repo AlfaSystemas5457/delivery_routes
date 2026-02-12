@@ -35,7 +35,7 @@
                             <p class="text-muted">Presiona el botón para cargar tus paradas programadas.</p>
                             <button class="btn btn-primary btn-lg px-5 py-3 mt-3 shadow"
                                 t-on-click="startNewRoute">
-                            INICIAR RUTA DEL DÍA
+                                INICIAR RUTA DEL DÍA
                             </button>
                         </div>
                     </t>
@@ -75,15 +75,15 @@
                                 <t t-if="route">
                                     <div class="p-4 w-100 w-md-50"
                                         t-if="route.description">
-                                        <h3 class="mb-3 mt-4">Descripción del pedido:</h3>
-                                        <p class="fs-4"
+                                        <h3 class="mb-3">Descripción del pedido:</h3>
+                                        <p class="fs-4 mb-0"
                                             t-out="route.description || 'N/A'"/>
                                     </div>
 
                                     <div class="p-4 w-100 w-md-50"
                                         t-if="state.product_ids.length > 0">
                                         <h3 class="mb-3">Productos a entregar:</h3>
-                                        <ul>
+                                        <ul class="mb-0">
                                             <t t-foreach="state.product_ids"
                                                 t-as="prod"
                                                 t-key="prod.id">
@@ -94,15 +94,12 @@
                                         </ul>
                                     </div>
 
-                                    <t t-if="route.amount_total">
-                                        <div>
-                                            <h3 class="mb-3 mt-4">Total de la Ruta:</h3>
-                                            <span class="fs-4">
-                                            $                                                <t t-out="route.amount_total"/>
-                                            </span>
-                                        </div>
-                                    </t>
-
+                                    <div class="p-4 w-100 w-md-50"
+                                        t-if="route.amount_total">
+                                        <h3 class="mb-3">Total de la Ruta:</h3>
+                                        <span class="fs-4 mb-0">$                                            <t t-out="route.amount_total"/>
+                                        </span>
+                                    </div>
                                 </t>
                                 <t t-else="">
                                     <div class="p-4 text-center text-muted">

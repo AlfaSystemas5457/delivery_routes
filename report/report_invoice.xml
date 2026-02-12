@@ -54,8 +54,12 @@
                         </table>
 
                         <h4>Total de facturación:</h4>
+                        <div t-if="record.amount_untaxed">
+                            <strong>Subtotal:</strong>
+                            <t t-esc="record.amount_untaxed" />
+                        </div>
                         <div t-if="record.amount_tax">
-                            <strong>Total de impuestos:</strong>
+                            <strong>Impuestos:</strong>
                             <t t-esc="record.amount_tax" />
                         </div>
                         <div t-if="record.amount_total">

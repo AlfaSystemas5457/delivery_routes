@@ -14,29 +14,57 @@ export class CustomerCard extends Component {
     setup() {
         this.signatureCanvasRef = useRef("signatureCanvas");
         this.signaturePad = null;
-        this.state = useState({ showSignatureModal: false });
+        this.signaturePadTasting = null;
         this.invoiceLinesById = useState([]);
+        this.state = useState(
+            {
+                showSignatureModal: false,
+                showSignatureModalTasting: false
+            }
+        );
 
         this.orm = useService("orm");
         this.notification = useService("notification");
 
-        this.localAddress = useState({
-            id: this.props.address.id,
-            contact: this.props.address.contact,
-            address: this.props.address.address,
-            status: this.props.address.status,
-            product_lines: [],
-            currentStep: this.props.address.current_step || 0,
-            sale_order_id: this.props.address.sale_order_id,
-            sale_details: {},
-            sale_order_lines_details: [],
-            paymentTerms: [],
-            stock_picking_id: false,
-            stock_picking_details: {},
-            stock_picking_line_details: [],
-            invoice_ids: [],
-            invoice_details: [],
-        });
+        this.localAddress = useState(
+            {
+                // general
+                id: this.props.address.id,
+                contact: this.props.address.contact,
+                address: this.props.address.address,
+                status: this.props.address.status,
+                currentStep: this.props.address.current_step || 0,
+
+                // producto
+                product_lines: [],
+                lot_ids: [],
+
+                // venta
+                sale_order_id: this.props.address.sale_order_id,
+                sale_details: {},
+                sale_order_lines_details: [],
+                paymentTerms: [],
+
+                // entrega
+                stock_picking_id: false,
+                stock_picking_details: {},
+                stock_picking_line_details: [],
+
+                // factura
+                invoice_ids: [],
+                invoice_details: [],
+
+                // devoluciones
+                refund_id: false,
+                is_refund: false,
+                return_lines: [],
+
+                // degustaciones
+                tasting_id: false,
+                is_tasting: false,
+                tasting_lines: [],
+            }
+        );
 
         this.statusLabels = {
             pending: 'Pendiente',
@@ -75,6 +103,7 @@ export class CustomerCard extends Component {
 
         onPatched(() => {
             this.initSignaturePad();
+            this.initSignaturePadTasting();
         });
 
 
@@ -83,6 +112,8 @@ export class CustomerCard extends Component {
         });
 
         this.availableProducts = useState({ items: [] });
+        this.availableProductsRefund = useState({ items: [] });
+        this.availableProductsTasting = useState({ items: [] });
     }
 
     handleCloseModal() {
@@ -143,8 +174,27 @@ export class CustomerCard extends Component {
             this.localAddress.contact = result.contact;
             this.localAddress.address = result.address;
             this.localAddress.status = result.status;
+
             this.localAddress.product_lines = result.product_lines;
             this.localAddress.sale_order_id = result.sale_order_id;
+
+            this.localAddress.refund_id = result.refund_id;
+            this.localAddress.is_refund = result.is_refund;
+            this.localAddress.return_lines = result.return_lines;
+
+            this.localAddress.tasting_id = result.tasting_id;
+            this.localAddress.is_tasting = result.is_tasting;
+            this.localAddress.tasting_lines = result.tasting_lines;
+
+            const productIds = this.localAddress.product_lines.map(line =>
+                line.product_id && line.product_id[0]
+            ).filter(id => !!id);
+
+            this.localAddress.lot_ids = await this.orm.searchRead(
+                "stock.lot",
+                [["product_id", "in", productIds]],
+                ["id", "name"],
+            );
 
             this.props.onProductsLoaded?.(this.props.address.id);
             await this.loadAvailableProducts();
@@ -159,6 +209,102 @@ export class CustomerCard extends Component {
             );
         }
     }
+
+    async toggleRefund() {
+        try {
+            this.localAddress.is_refund = !this.localAddress.is_refund;
+            await this.orm.call(
+                "route.sale.address",
+                "write",
+                [[this.localAddress.id], { is_refund: this.localAddress.is_refund }]
+            );
+        } catch (error) {
+            this.notification.add(
+                "Error al cambiar la devolución: " + error.message,
+                { type: "danger" }
+            );
+        }
+    }
+
+    async toggleTasting() {
+        try {
+            this.localAddress.is_tasting = !this.localAddress.is_tasting;
+            await this.orm.call(
+                "route.sale.address",
+                "write",
+                [[this.localAddress.id], { is_tasting: this.localAddress.is_tasting }]
+            );
+        } catch (error) {
+            this.notification.add(
+                "Error al cambiar la degustación: " + error.message,
+                { type: "danger" }
+            );
+        }
+    }
+
+    async onLotSelected(ev, line) {
+        try {
+            const selectedId = parseInt(ev.target.value, 10);
+            if (!selectedId) return;
+
+            line.lot_id = [selectedId, ev.target.options[ev.target.selectedIndex].text];
+            this.localAddress.product_lines = [...this.localAddress.product_lines];
+
+            await this.orm.call(
+                "route.sale.product.line",
+                "write",
+                [[line.id], { lot_id: selectedId }]
+            );
+
+            this.notification.add("Lote actualizado", { type: "success" });
+        } catch (error) {
+            console.error(error)
+            this.notification.add("Error al actualizar el lote: " + (error.message || error), { type: "danger" });
+        }
+    }
+
+    async onLotSelectedRefund(ev, line) {
+        try {
+            const selectedId = parseInt(ev.target.value, 10);
+            if (!selectedId) return;
+
+            line.lot_id = [selectedId, ev.target.options[ev.target.selectedIndex].text];
+            this.localAddress.product_lines = [...this.localAddress.product_lines];
+
+            await this.orm.call(
+                "route.sale.return.line",
+                "write",
+                [[line.id], { lot_id: selectedId }]
+            );
+
+            this.notification.add("Lote actualizado", { type: "success" });
+        } catch (error) {
+            console.error(error)
+            this.notification.add("Error al actualizar el lote: " + (error.message || error), { type: "danger" });
+        }
+    }
+
+    async onLotSelectedTasting(ev, line) {
+        try {
+            const selectedId = parseInt(ev.target.value, 10);
+            if (!selectedId) return;
+
+            line.lot_id = [selectedId, ev.target.options[ev.target.selectedIndex].text];
+            this.localAddress.product_lines = [...this.localAddress.product_lines];
+
+            await this.orm.call(
+                "route.sale.tasting.line",
+                "write",
+                [[line.id], { lot_id: selectedId }]
+            );
+
+            this.notification.add("Lote actualizado", { type: "success" });
+        } catch (error) {
+            console.error(error)
+            this.notification.add("Error al actualizar el lote: " + (error.message || error), { type: "danger" });
+        }
+    }
+
 
     async loadAvailableProducts() {
         try {
@@ -175,11 +321,53 @@ export class CustomerCard extends Component {
             );
         }
     }
+    async loadAvailableProductsRefund() {
+        try {
+            const allProducts = await this.orm.call(
+                "route.sale.address",
+                "get_available_products_refund",
+                [[this.localAddress.id]]
+            );
+            this.availableProductsRefund.items = allProducts || [];
+        } catch (error) {
+            this.notification.add(
+                "Error al cargar productos disponibles: " + error.message,
+                { type: "danger" }
+            );
+        }
+    }
+    async loadAvailableProductsTasting() {
+        try {
+            const allProducts = await this.orm.call(
+                "route.sale.address",
+                "get_available_products_tasting",
+                [[this.localAddress.id]]
+            );
+            this.availableProductsTasting.items = allProducts || [];
+        } catch (error) {
+            this.notification.add(
+                "Error al cargar productos disponibles: " + error.message,
+                { type: "danger" }
+            );
+        }
+    }
 
     async onQuantityChange(ev, line) {
         const value = parseFloat(ev.target.value) || 0;
         line.quantity = value;
         this.localAddress.product_lines = [...this.localAddress.product_lines];
+    }
+
+    async onQuantityChangeRefund(ev, line) {
+        const value = parseFloat(ev.target.value) || 0;
+        line.quantity = value;
+        this.localAddress.return_lines = [...this.localAddress.return_lines];
+    }
+
+    async onQuantityChangeTasting(ev, line) {
+        const value = parseFloat(ev.target.value) || 0;
+        line.quantity = value;
+        this.localAddress.tasting_lines = [...this.localAddress.tasting_lines];
     }
 
     async saveProducts() {
@@ -196,6 +384,40 @@ export class CustomerCard extends Component {
                 { type: "success" }
             );
 
+        } catch (error) {
+            this.notification.add(
+                "Error al guardar cantidades: " + error.message,
+                { type: "danger" }
+            );
+        }
+    }
+
+    async saveProductsRefund() {
+        try {
+            await this.orm.call(
+                "route.sale.address",
+                "action_save_product_quantities_refund",
+                [[this.localAddress.id], this.localAddress.return_lines]
+            );
+
+            this.props.onProductsLoaded?.(this.props.address.id);
+        } catch (error) {
+            this.notification.add(
+                "Error al guardar cantidades: " + error.message,
+                { type: "danger" }
+            );
+        }
+    }
+
+    async saveProductsTasting() {
+        try {
+            await this.orm.call(
+                "route.sale.address",
+                "action_save_product_quantities_tasting",
+                [[this.localAddress.id], this.localAddress.tasting_lines]
+            );
+
+            this.props.onProductsLoaded?.(this.props.address.id);
         } catch (error) {
             this.notification.add(
                 "Error al guardar cantidades: " + error.message,
@@ -236,6 +458,98 @@ export class CustomerCard extends Component {
             this.addProductById(productId);
         }
         this.loadAvailableProducts();
+    }
+
+    async onProductSelectedRefund(ev) {
+        try {
+            const productId = parseInt(ev.target.value);
+            if (!productId) return;
+
+            const line = await this.orm.call(
+                "route.sale.address",
+                "action_add_product_line_refund",
+                [[this.localAddress.id], productId]
+            );
+
+            this.localAddress.return_lines = [
+                ...this.localAddress.return_lines,
+                line,
+            ];
+
+            this.loadAvailableProductsRefund();
+            this.notification.add("Producto agregado", { type: "success" });
+        } catch (error) {
+            this.notification.add(
+                error.message || "Error al agregar producto",
+                { type: "danger" }
+            );
+        }
+    }
+
+    async onProductSelectedTasting(ev) {
+        try {
+            const productId = parseInt(ev.target.value);
+            if (!productId) return;
+
+            const line = await this.orm.call(
+                "route.sale.address",
+                "action_add_product_line_tasting",
+                [[this.localAddress.id], productId]
+            );
+
+            this.localAddress.tasting_lines = [
+                ...this.localAddress.tasting_lines,
+                line,
+            ];
+
+            this.loadAvailableProductsTasting();
+            this.notification.add("Producto agregado", { type: "success" });
+        } catch (error) {
+            this.notification.add(
+                error.message || "Error al agregar producto",
+                { type: "danger" }
+            );
+        }
+    }
+
+    async create_refund_picking() {
+        try {
+            await this.saveProductsRefund()
+            await this.orm.call(
+                "route.sale.address",
+                "create_return_picking",
+                [[this.localAddress.id]]
+            );
+
+            this.loadProducts()
+        } catch (error) {
+            this.notification.add("Error al crear devolución: " + error.message, { type: "danger" });
+        }
+    }
+
+    async create_tasting_picking() {
+        try {
+            await this.saveProductsTasting()
+
+            if (!this.signaturePadTasting || this.signaturePadTasting.isEmpty()) {
+                this.notification.add("Por favor dibuja la firma", { type: "danger" });
+                return;
+            }
+
+            const dataUrl = this.signaturePadTasting.toDataURL("image/png");
+            const base64 = dataUrl.split(",")[1];
+
+            await this.orm.call(
+                "route.sale.address",
+                "create_tasting_picking",
+                [[this.localAddress.id], base64],
+            );
+
+            await this.loadProducts()
+            await this.closeSignatureModalTasting();
+        } catch (error) {
+            this.notification.add("Error al crear devolución: " + error.message, { type: "danger" });
+        }
     }
 
     async onPrintRouteTicket() {
@@ -332,6 +646,44 @@ export class CustomerCard extends Component {
             );
 
             this.loadAvailableProducts();
+            this.notification.add("Producto eliminado", { type: "success" });
+        } catch (error) {
+            this.notification.add("Error al eliminar producto: " + error.message, { type: "danger" });
+        }
+    };
+
+    removeLineRefund = async (line) => {
+        try {
+            await this.orm.call(
+                "route.sale.address",
+                "action_remove_product_line_refund",
+                [[this.localAddress.id], line.id]
+            );
+
+            this.localAddress.return_lines = this.localAddress.return_lines.filter(
+                l => l.id !== line.id
+            );
+
+            this.loadAvailableProductsRefund();
+            this.notification.add("Producto eliminado", { type: "success" });
+        } catch (error) {
+            this.notification.add("Error al eliminar producto: " + error.message, { type: "danger" });
+        }
+    };
+
+    removeLineTasting = async (line) => {
+        try {
+            await this.orm.call(
+                "route.sale.address",
+                "action_remove_product_line_tasting",
+                [[this.localAddress.id], line.id]
+            );
+
+            this.localAddress.tasting_lines = this.localAddress.tasting_lines.filter(
+                l => l.id !== line.id
+            );
+
+            this.loadAvailableProductsTasting();
             this.notification.add("Producto eliminado", { type: "success" });
         } catch (error) {
             this.notification.add("Error al eliminar producto: " + error.message, { type: "danger" });
@@ -580,19 +932,47 @@ export class CustomerCard extends Component {
         this.state.showSignatureModal = false;
     }
 
-    clearSignature() {
-        if (this.signaturePad) {
-            this.signaturePad.clear();
+    scheduleInitSignaturePadTasting() {
+        this.env.bus.trigger("owl.nextTick").then(() => {
+            this.initSignaturePadTasting();
+        });
+    }
+
+    openSignatureModalTasting() {
+        this.state.showSignatureModalTasting = true;
+    }
+
+    initSignaturePadTasting() {
+        const canvas = this.signatureCanvasRef.el;
+        if (canvas) {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            this.signaturePadTasting = new SignaturePad(canvas, {
+                penColor: "rgb(0,0,139)",
+                backgroundColor: "rgba(255,255,255,0)",
+                minWidth: 2.5,
+                maxWidth: 2.5,
+            });
         }
     }
 
-    async saveSignature() {
-        if (!this.signaturePad || this.signaturePad.isEmpty()) {
-            this.notification.add("Por favor dibuja la firma", { type: "danger" });
-            return;
+    clearSignatureTasting() {
+        if (this.signaturePadTasting) {
+            this.signaturePadTasting.clear();
         }
+    }
 
+    closeSignatureModalTasting() {
+        this.state.showSignatureModalTasting = false;
+    }
+
+    async saveSignature() {
         try {
+            if (!this.signaturePad || this.signaturePad.isEmpty()) {
+                this.notification.add("Por favor dibuja la firma", { type: "danger" });
+                return;
+            }
+
             const dataUrl = this.signaturePad.toDataURL("image/png");
             const base64 = dataUrl.split(",")[1];
 

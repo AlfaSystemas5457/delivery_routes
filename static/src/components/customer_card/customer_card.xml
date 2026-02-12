@@ -84,15 +84,21 @@
                 </div>
 
                 <!-- Pedido -->
-                <t t-if="localAddress.currentStep === 0">
+                <div class="step-content overflow-auto"
+                    t-att-class="{'d-none': localAddress.currentStep !== 0}">
                     <div class="pt-3 w-100 h-100 overflow-auto">
                         <h1 class="fs-1 mb-3 text-center">Pedido</h1>
-                        <t t-if="address.product_lines.length > 0 or localAddress.product_lines.length > 0">
+                        <t t-if="
+                            address.product_lines.length > 0 
+                            or localAddress.product_lines.length > 0
+                            or localAddress.return_lines.length > 0
+                            or localAddress.tasting_lines.length > 0">
                             <div class="mt-3 px-3">
                                 <table class="table table-sm">
                                     <thead>
                                         <tr>
                                             <th>Producto</th>
+                                            <th>Lote</th>
                                             <th style="width: 120px;">Cantidad</th>
                                         </tr>
                                     </thead>
@@ -106,18 +112,40 @@
                                                     <t t-out="line.product_id[1]"/>
                                                 </td>
                                                 <td>
+                                                    <select class="form-select mb-2"
+                                                        t-if="localAddress.lot_ids and localAddress.lot_ids.length > 0"
+                                                        t-on-change="(ev) => this.onLotSelected(ev, line)"
+                                                        t-att-value="line.lot_id and line.lot_id[0] || ''"
+                                                        t-att-disabled="localAddress.sale_order_id ? true : undefined or localAddress.status === 'skipped'">
+                                                        <option value="">
+                                                            Seleccionar lote...
+                                                        </option>
+                                                        <t t-foreach="localAddress.lot_ids"
+                                                            t-as="lot"
+                                                            t-key="lot.id">
+                                                            <option t-att-value="lot.id"
+                                                                t-att-selected="line.lot_id and line.lot_id[0] === lot.id">
+                                                                <t t-esc="lot.name"/>
+                                                            </option>
+                                                        </t>
+                                                    </select>
+                                                    <t t-if="!localAddress.lot_ids || localAddress.lot_ids.length === 0">
+                                                        <p class="text-muted">No hay lotes disponibles.</p>
+                                                    </t>
+                                                </td>
+                                                <td>
                                                     <input type="number"
                                                         min="0"
                                                         class="form-control"
                                                         t-att-id="'qty-' + line.id"
                                                         t-att-name="'qty_product_' + line.product_id[0]"
-                                                        t-att-disabled="localAddress.sale_order_id ? true : undefined"
+                                                        t-att-disabled="localAddress.sale_order_id ? true : undefined or localAddress.status === 'skipped'"
                                                         t-att-value="line.quantity"
                                                         t-on-input="(ev) => this.onQuantityChange(ev, line)" />
                                                 </td>
                                                 <td style="width: 4rem;">
                                                     <button class="btn btn-sm btn-danger"
-                                                        t-att-disabled="localAddress.sale_order_id ? true : undefined"
+                                                        t-att-disabled="localAddress.sale_order_id ? true : undefined or localAddress.status === 'skipped'"
                                                         t-on-click="() => removeLine(line)">
                                                         <i class="fa fa-trash"/>
                                                     </button>
@@ -128,7 +156,7 @@
                                 </table>
                                 <select class="form-select mb-2"
                                     t-on-change="onProductSelected"
-                                    t-att-disabled="localAddress.sale_order_id ? true : undefined">
+                                    t-att-disabled="localAddress.sale_order_id ? true : undefined or localAddress.status === 'skipped'">
                                     <option value="">Agregar producto...</option>
                                     <t t-foreach="availableProducts.items"
                                         t-as="p"
@@ -138,6 +166,227 @@
                                         </option>
                                     </t>
                                 </select>
+                            </div>
+                            <div class="mt-3 pt-3 border-top px-3 d-flex flex-column flex-sm-row flex-sm-wrap">
+                                <div class="w-100 w-lg-50 d-flex flex-column aling-items-center">
+                                    <button type="button"
+                                        class="btn mx-5 my-2 fs-1"
+                                        t-att-disabled="localAddress.refund_id ? true : undefined"
+                                        t-att-class="{
+                                        'btn-success': localAddress.is_refund,
+                                        'btn-outline-secondary': !localAddress.is_refund
+                                    }"
+                                        t-on-click="toggleRefund">
+                                        Devoluciones
+                                    </button>
+
+                                    <table class="table table-sm px-2"
+                                        t-if="localAddress.is_refund">
+                                        <thead>
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Lote</th>
+                                                <th style="width: 120px;">Cantidad</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <t t-foreach="localAddress.return_lines"
+                                                t-as="line"
+                                                t-key="line.id">
+                                                <tr>
+                                                    <td>
+                                                        <t t-out="line.product_id[1]"/>
+                                                    </td>
+                                                    <td>
+                                                        <select class="form-select mb-2"
+                                                            t-if="localAddress.lot_ids and localAddress.lot_ids.length > 0"
+                                                            t-on-change="(ev) => this.onLotSelectedRefund(ev, line)"
+                                                            t-att-value="line.lot_id and line.lot_id[0] || ''"
+                                                            t-att-disabled="localAddress.refund_id ? true : undefined">
+                                                            <option value="">
+                                                            Seleccionar lote...
+                                                            </option>
+                                                            <t t-foreach="localAddress.lot_ids"
+                                                                t-as="lot"
+                                                                t-key="lot.id">
+                                                                <option t-att-value="lot.id"
+                                                                    t-att-selected="line.lot_id and line.lot_id[0] === lot.id">
+                                                                    <t t-esc="lot.name"/>
+                                                                </option>
+                                                            </t>
+                                                        </select>
+                                                        <t t-if="!localAddress.lot_ids || localAddress.lot_ids.length === 0">
+                                                            <p class="text-muted">No hay lotes disponibles.</p>
+                                                        </t>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number"
+                                                            min="0"
+                                                            class="form-control"
+                                                            t-att-id="'qty-refund' + line.id"
+                                                            t-att-name="'qty_product_refund_' + line.product_id[0]"
+                                                            t-att-disabled="localAddress.refund_id ? true : undefined"
+                                                            t-att-value="line.quantity"
+                                                            t-on-input="(ev) => this.onQuantityChangeRefund(ev, line)" />
+                                                    </td>
+                                                    <td style="width: 4rem;">
+                                                        <button class="btn btn-sm btn-danger"
+                                                            t-att-disabled="localAddress.refund_id ? true : undefined"
+                                                            t-on-click="() => removeLineRefund(line)">
+                                                            <i class="fa fa-trash"/>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                    <select class="form-select mb-2 mw-75"
+                                        t-if="localAddress.is_refund"
+                                        t-on-change="onProductSelectedRefund"
+                                        t-att-disabled="localAddress.refund_id ? true : undefined">
+                                        <option value="">Agregar producto...</option>
+                                        <t t-foreach="availableProductsRefund.items"
+                                            t-as="p"
+                                            t-key="p.id">
+                                            <option t-att-value="p.id">
+                                                <t t-out="p.product_id ? p.product_id[1] : 'Sin nombre'"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                    <div class="mt-auto d-flex flex-row justify-content-end p-3 w-100"
+                                        t-if="localAddress.is_refund and localAddress.refund_id === false">
+                                        <button class="btn btn-primary mx-1 fs-4"
+                                            t-on-click="create_refund_picking"
+                                            t-att-disabled="localAddress.refund_id ? true : undefined">
+                                            Generar devolución
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="w-100 w-lg-50 d-flex flex-column aling-items-center">
+                                    <button type="button"
+                                        class="btn mx-5 my-2 fs-1"
+                                        t-att-disabled="localAddress.tasting_id ? true : undefined"
+                                        t-att-class="{
+                                            'btn-success': localAddress.is_tasting,
+                                            'btn-outline-secondary': !localAddress.is_tasting
+                                        }"
+                                        t-on-click="toggleTasting">
+                                        Degustaciones
+                                    </button>
+
+                                    <table class="table table-sm px-2"
+                                        t-if="localAddress.is_tasting">
+                                        <thead>
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Lote</th>
+                                                <th style="width: 120px;">Cantidad</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <t t-foreach="localAddress.tasting_lines"
+                                                t-as="line"
+                                                t-key="line.id">
+                                                <tr>
+                                                    <td>
+                                                        <t t-out="line.product_id[1]"/>
+                                                    </td>
+                                                    <td>
+                                                        <select class="form-select mb-2"
+                                                            t-if="localAddress.lot_ids and localAddress.lot_ids.length > 0"
+                                                            t-on-change="(ev) => this.onLotSelectedTasting(ev, line)"
+                                                            t-att-value="line.lot_id and line.lot_id[0] || ''"
+                                                            t-att-disabled="localAddress.tasting_id ? true : undefined">
+                                                            <option value="">
+                                                            Seleccionar lote...
+                                                            </option>
+                                                            <t t-foreach="localAddress.lot_ids"
+                                                                t-as="lot"
+                                                                t-key="lot.id">
+                                                                <option t-att-value="lot.id"
+                                                                    t-att-selected="line.lot_id and line.lot_id[0] === lot.id">
+                                                                    <t t-esc="lot.name"/>
+                                                                </option>
+                                                            </t>
+                                                        </select>
+                                                        <t t-if="!localAddress.lot_ids || localAddress.lot_ids.length === 0">
+                                                            <p class="text-muted">No hay lotes disponibles.</p>
+                                                        </t>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number"
+                                                            min="0"
+                                                            class="form-control"
+                                                            t-att-id="'qty-tasting' + line.id"
+                                                            t-att-name="'qty_product_tasting_' + line.product_id[0]"
+                                                            t-att-disabled="localAddress.tasting_id ? true : undefined"
+                                                            t-att-value="line.quantity"
+                                                            t-on-input="(ev) => this.onQuantityChangeTasting(ev, line)" />
+                                                    </td>
+                                                    <td style="width: 4rem;">
+                                                        <button class="btn btn-sm btn-danger"
+                                                            t-att-disabled="localAddress.tasting_id ? true : undefined"
+                                                            t-on-click="() => removeLineTasting(line)">
+                                                            <i class="fa fa-trash"/>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                    <select class="form-select mb-2 mw-75"
+                                        t-if="localAddress.is_tasting"
+                                        t-on-change="onProductSelectedTasting"
+                                        t-att-disabled="localAddress.tasting_id ? true : undefined">
+                                        <option value="">Agregar producto...</option>
+                                        <t t-foreach="availableProductsTasting.items"
+                                            t-as="p"
+                                            t-key="p.id">
+                                            <option t-att-value="p.id">
+                                                <t t-out="p.product_id ? p.product_id[1] : 'Sin nombre'"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                    <div class="mt-auto d-flex flex-row justify-content-end p-3 w-100"
+                                        t-if="localAddress.is_tasting and localAddress.tasting_id === false">
+                                        <button class="btn btn-primary mx-1 fs-4"
+                                            t-on-click="openSignatureModalTasting"
+                                            t-att-disabled="localAddress.tasting_id ? true : undefined">
+                                            Agregar firma
+                                        </button>
+                                    </div>
+
+                                    <div t-if="state.showSignatureModalTasting"
+                                        class="modal d-block"
+                                        tabindex="-1">
+                                        <div class="absotule top-0 start-0 w-100 h-100 bg-dark bg-opacity-25 d-flex justify-content-center align-items-center p-5"
+                                            style="backdrop-filter: blur(5px);">
+                                            <div class="w-100 d-flex flex-column delivery-pos-card bg-delivery">
+                                                <div class="d-flex flex-row justify-content-between align-items-center p-3 border-bottom">
+                                                    <h5 class="modal-title">Firma del cliente</h5>
+                                                    <button type="button"
+                                                        class="btn-close"
+                                                        t-on-click="closeSignatureModalTasting"/>
+                                                </div>
+                                                <div class="modal-body text-center">
+                                                    <canvas t-ref="signatureCanvas"
+                                                        width="614"
+                                                        height="204"
+                                                        style="border:1px solid #000; width:100%; height:200px;">
+                                                    </canvas>
+                                                </div>
+                                                <div class="modal-footer p-2 d-flex justify-content-end">
+                                                    <button class="btn btn-secondary mx-1"
+                                                        t-on-click="clearSignatureTasting">Limpiar</button>
+                                                    <button class="btn btn-primary mx-1"
+                                                        t-on-click="create_tasting_picking">Generar degustación</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </t>
                         <t t-else="">
@@ -150,10 +399,11 @@
                             </div>
                         </t>
                     </div>
-                </t>
+                </div>
 
                 <!-- Venta -->
-                <t t-elif="localAddress.currentStep === 1">
+                <div class="step-content overflow-auto"
+                    t-att-class="{'d-none': localAddress.currentStep !== 1}">
                     <div class="pt-3 w-100 h-100 overflow-auto">
                         <h1 class="fs-1 mb-3 text-center">Venta</h1>
                         <t t-if="localAddress.sale_order_id">
@@ -242,18 +492,18 @@
 
                                             <table class="table table-sm fs-4 w-100">
                                                 <tr>
-                                                    <td class="text-end mr-1 w-50 px-2">total sin impuestos:</td>
+                                                    <td class="text-end mr-1 w-50 px-2">Subtotal:</td>
                                                     <td class="text-start px-2">$                                                        <t t-esc="localAddress.sale_details.amount_untaxed"/>
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="text-end mr-1 w-50 px-2">total impuestos:</td>
+                                                    <td class="text-end mr-1 w-50 px-2">Impuestos:</td>
                                                     <td class="text-start px-2">$                                                        <t t-esc="localAddress.sale_details.amount_tax"/>
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td class="text-end mr-1 w-50 px-2">
-                                                        <strong class="p-0">total:</strong>
+                                                        <strong class="p-0">Total:</strong>
                                                     </td>
                                                     <td class="text-start px-2">
                                                         <strong class="p-0">$                                                            <t t-esc="localAddress.sale_details.amount_total"/>
@@ -273,10 +523,11 @@
                             </div>
                         </t>
                     </div>
-                </t>
+                </div>
 
                 <!-- Inventario -->
-                <t t-elif="localAddress.currentStep === 2">
+                <div class="step-content overflow-auto"
+                    t-att-class="{'d-none': localAddress.currentStep !== 2}">
                     <div class="pt-3 w-100 h-100 overflow-auto">
                         <h1 class="fs-1 mb-3 text-center">Inventario</h1>
                         <t t-if="localAddress.stock_picking_id">
@@ -310,6 +561,7 @@
                                             <th>Producto</th>
                                             <th>Demanda</th>
                                             <th>Cantidad</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -326,6 +578,14 @@
                                                     </td>
                                                     <td>
                                                         <t t-esc="line.quantity"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <t t-if="line.product_uom_qty > line.quantity">
+                                                            <i class="fa fa-exclamation-circle fa-2x text-warning"
+                                                                data-bs-toggle="tooltip"
+                                                                data-bs-placement="top"
+                                                                title="La cantidad disponible es menor a la demanda" />
+                                                        </t>
                                                     </td>
                                                 </tr>
                                             </t>
@@ -360,7 +620,8 @@
                                                 class="btn-close"
                                                 t-on-click="closeSignatureModal"/>
                                         </div>
-                                        <div class="modal-body text-center">
+                                        <div class="modal-body text-center mx-3"
+                                            style="background-color: white;">
                                             <canvas t-ref="signatureCanvas"
                                                 width="614"
                                                 height="204"
@@ -392,10 +653,11 @@
                             </div>
                         </t>
                     </div>
-                </t>
+                </div>
 
                 <!-- Factura -->
-                <t t-elif="localAddress.currentStep === 3">
+                <div class="step-content overflow-auto"
+                    t-att-class="{'d-none': localAddress.currentStep !== 3}">
                     <div class="pt-3 w-100 h-100 overflow-auto">
                         <h1 class="fs-1 mb-3 text-center">Factura</h1>
                         <t t-if="localAddress.invoice_ids and localAddress.invoice_ids.length > 0">
@@ -468,18 +730,18 @@
 
                                         <table class="table table-sm fs-4 ml-auto w-50">
                                             <tr>
-                                                <td class="text-end mr-1 w-50 px-2">total sin impuestos:</td>
+                                                <td class="text-end mr-1 w-50 px-2">Subtotal:</td>
                                                 <td class="text-start px-2">$                                                    <t t-esc="inv.amount_untaxed"/>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td class="text-end mr-1 w-50 px-2">total impuestos:</td>
+                                                <td class="text-end mr-1 w-50 px-2">Impuestos:</td>
                                                 <td class="text-start px-2">$                                                    <t t-esc="inv.amount_tax"/>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td class="text-end mr-1 w-50 px-2">
-                                                    <strong class="p-0">total:</strong>
+                                                    <strong class="p-0">Total:</strong>
                                                 </td>
                                                 <td class="text-start px-2">
                                                     <strong class="p-0">$                                                        <t t-esc="inv.amount_total"/>
@@ -521,7 +783,7 @@
                             </div>
                         </t>
                     </div>
-                </t>
+                </div>
 
                 <div class="mt-auto d-flex flex-row justify-content-end border-top p-3 w-100">
                     <!-- Pedido -->

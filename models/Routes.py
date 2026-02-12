@@ -260,6 +260,32 @@ class RouteSaleAddress(models.Model):
         ):
             raise exceptions.UserError("No se asignaron productos.")
 
+    def _validations_refund(self):
+        if not self.contact:
+            raise exceptions.UserError("Debes seleccionar un contacto.")
+
+        if not self.route_id.warehouse_id:
+            raise exceptions.UserError("La ruta no tiene asignado un almacén.")
+
+        if (
+            not self.return_lines
+            or sum(line.quantity for line in self.return_lines) <= 0
+        ):
+            raise exceptions.UserError("No se asignaron productos.")
+
+    def _validations_tasting(self):
+        if not self.contact:
+            raise exceptions.UserError("Debes seleccionar un contacto.")
+
+        if not self.route_id.warehouse_id:
+            raise exceptions.UserError("La ruta no tiene asignado un almacén.")
+
+        if (
+            not self.tasting_lines
+            or sum(line.quantity for line in self.tasting_lines) <= 0
+        ):
+            raise exceptions.UserError("No se asignaron productos.")
+
     # def action_load_route_products(self):
     #     for record in self:
     #         if record.route_id and not record.product_lines:
@@ -272,6 +298,7 @@ class RouteSaleAddress(models.Model):
 
     def create_return_picking(self):
         self.ensure_one()
+        self._validations_refund()
 
         Picking = self.env["stock.picking"]
         Move = self.env["stock.move"]
@@ -341,8 +368,9 @@ class RouteSaleAddress(models.Model):
 
         return picking
 
-    def create_tasting_picking(self):
+    def create_tasting_picking(self, signature=False):
         self.ensure_one()
+        self._validations_tasting()
 
         Picking = self.env["stock.picking"]
         Move = self.env["stock.move"]
@@ -377,6 +405,7 @@ class RouteSaleAddress(models.Model):
                 "location_id": warehouse_loc.id,
                 "location_dest_id": customer_loc.id,
                 "origin": f"Degustación Ruta {self.route_id.name}",
+                "customer_signature": signature if signature else False,
             }
         )
 
@@ -408,6 +437,10 @@ class RouteSaleAddress(models.Model):
         picking.action_confirm()
 
         self.write({"is_tasted": True, "tasting_id": picking.id})
+
+        if signature:
+            picking.button_validate()
+            return picking.id
 
         return {
             "type": "ir.actions.act_window",
@@ -563,6 +596,30 @@ class RouteSaleAddress(models.Model):
 
         return True
 
+    def action_save_product_quantities_refund(self, lines):
+        self.ensure_one()
+
+        for line in lines:
+            product_line = self.env["route.sale.return.line"].browse(line["id"])
+            if product_line.sale_address_id.id != self.id:
+                continue
+
+            product_line.quantity = line["quantity"]
+
+        return True
+
+    def action_save_product_quantities_tasting(self, lines):
+        self.ensure_one()
+
+        for line in lines:
+            product_line = self.env["route.sale.tasting.line"].browse(line["id"])
+            if product_line.sale_address_id.id != self.id:
+                continue
+
+            product_line.quantity = line["quantity"]
+
+        return True
+
     def action_load_route_products(self):
         self.ensure_one()
 
@@ -582,33 +639,31 @@ class RouteSaleAddress(models.Model):
                 for product in self.route_id.product
             ]
 
-        if not self.return_lines and not self.is_refunded:
-            if self.is_refund:
-                self.return_lines = [
-                    (
-                        0,
-                        0,
-                        {
-                            "product_id": product.id,
-                            "quantity": 0.0,
-                        },
-                    )
-                    for product in self.route_id.product
-                ]
+        if not self.return_lines:
+            self.return_lines = [
+                (
+                    0,
+                    0,
+                    {
+                        "product_id": product.id,
+                        "quantity": 0.0,
+                    },
+                )
+                for product in self.route_id.product
+            ]
 
-        if not self.tasting_lines and not self.is_tasted:
-            if self.is_tasting:
-                self.tasting_lines = [
-                    (
-                        0,
-                        0,
-                        {
-                            "product_id": product.id,
-                            "quantity": 0.0,
-                        },
-                    )
-                    for product in self.route_id.product
-                ]
+        if not self.tasting_lines:
+            self.tasting_lines = [
+                (
+                    0,
+                    0,
+                    {
+                        "product_id": product.id,
+                        "quantity": 0.0,
+                    },
+                )
+                for product in self.route_id.product
+            ]
 
         return {
             "id": self.id,
@@ -620,9 +675,30 @@ class RouteSaleAddress(models.Model):
                     "id",
                     "product_id",
                     "quantity",
+                    "lot_id",
                 ]
             ),
             "sale_order_id": self.sale_order_id.id if self.sale_order_id else False,
+            "refund_id": self.refund_id.id if self.refund_id else False,
+            "is_refund": self.is_refund,
+            "return_lines": self.return_lines.read(
+                [
+                    "id",
+                    "product_id",
+                    "quantity",
+                    "lot_id",
+                ]
+            ),
+            "tasting_id": self.tasting_id.id if self.tasting_id else False,
+            "is_tasting": self.is_tasting,
+            "tasting_lines": self.tasting_lines.read(
+                [
+                    "id",
+                    "product_id",
+                    "quantity",
+                    "lot_id",
+                ]
+            ),
         }
 
     def action_update_status(self, status):
@@ -641,10 +717,44 @@ class RouteSaleAddress(models.Model):
             line.unlink()
         return True
 
+    def action_remove_product_line_refund(self, line_id):
+        self.ensure_one()
+        line = self.env["route.sale.return.line"].browse(line_id)
+        if line.sale_address_id.id == self.id:
+            line.unlink()
+        return True
+
+    def action_remove_product_line_tasting(self, line_id):
+        self.ensure_one()
+        line = self.env["route.sale.tasting.line"].browse(line_id)
+        if line.sale_address_id.id == self.id:
+            line.unlink()
+        return True
+
     def get_available_products(self):
         self.ensure_one()
         all_products = self.route_id.product
         used_ids = self.product_lines.mapped("product_id").ids
+        return [
+            {"id": p.id, "product_id": [p.id, p.name]}
+            for p in all_products
+            if p.id not in used_ids
+        ]
+
+    def get_available_products_refund(self):
+        self.ensure_one()
+        all_products = self.route_id.product
+        used_ids = self.return_lines.mapped("product_id").ids
+        return [
+            {"id": p.id, "product_id": [p.id, p.name]}
+            for p in all_products
+            if p.id not in used_ids
+        ]
+
+    def get_available_products_tasting(self):
+        self.ensure_one()
+        all_products = self.route_id.product
+        used_ids = self.tasting_lines.mapped("product_id").ids
         return [
             {"id": p.id, "product_id": [p.id, p.name]}
             for p in all_products
@@ -668,9 +778,42 @@ class RouteSaleAddress(models.Model):
             "quantity": line.quantity,
         }
 
+    def action_add_product_line_refund(self, productId):
+        self.ensure_one()
+        product = self.env["product.product"].browse(productId)
+        line = self.env["route.sale.return.line"].create(
+            {
+                "sale_address_id": self.id,
+                "product_id": product.id,
+                "quantity": 0,
+            }
+        )
+        # Retornar igual que action_load_route_products
+        return {
+            "id": line.id,
+            "product_id": [product.id, product.display_name],
+            "quantity": line.quantity,
+        }
+
+    def action_add_product_line_tasting(self, productId):
+        self.ensure_one()
+        product = self.env["product.product"].browse(productId)
+        line = self.env["route.sale.tasting.line"].create(
+            {
+                "sale_address_id": self.id,
+                "product_id": product.id,
+                "quantity": 0,
+            }
+        )
+        # Retornar igual que action_load_route_products
+        return {
+            "id": line.id,
+            "product_id": [product.id, product.display_name],
+            "quantity": line.quantity,
+        }
+
     def handle_button_sale_terminal(self):
         self.ensure_one()
-        self.generate_ticket()
 
         order = self.env["sale.order"].create(
             {
@@ -695,6 +838,7 @@ class RouteSaleAddress(models.Model):
 
         self.sale_order_id = order
         self.status = "visited"
+        self.generate_ticket()
 
         return {
             "sale_order_id": order.id,
@@ -717,17 +861,29 @@ class RouteSaleProductLine(models.Model):
     sale_address_id = fields.Many2one(
         "route.sale.address", string="Dirección de Venta", ondelete="cascade"
     )
-    # bug: Muestra todos lo productos
+
     product_id = fields.Many2one(
         "product.product",
         string="Producto",
         required=True,
-        # domain="[('id', 'in', sale_address_id.route_id.product)]",
+        domain="[('id', 'in', route_product_ids)]",
     )
     quantity = fields.Float(string="Cantidad", default=1.0)
+
     lot_id = fields.Many2one(
         "stock.lot", string="Lote", domain="[('product_id', '=', product_id)]"
     )
+    route_product_ids = fields.Many2many(
+        "product.product",
+        string="Productos de la Ruta",
+        compute="_compute_route_products",
+        store=True,
+    )
+
+    @api.depends("sale_address_id.route_id.product")
+    def _compute_route_products(self):
+        for rec in self:
+            rec.route_product_ids = rec.sale_address_id.route_id.product.ids
 
 
 class RouteSaleReturnLine(models.Model):
@@ -740,10 +896,12 @@ class RouteSaleReturnLine(models.Model):
         ondelete="cascade",
         required=True,
     )
+
     product_id = fields.Many2one(
         "product.product",
         string="Producto a devolver",
         required=True,
+        domain="[('id', 'in', route_product_ids)]",
     )
     quantity = fields.Float(
         string="Cantidad a devolver",
@@ -756,7 +914,19 @@ class RouteSaleReturnLine(models.Model):
         related="product_id.uom_id",
         readonly=True,
     )
+
     lot_id = fields.Many2one("stock.lot", string="Lote")
+    route_product_ids = fields.Many2many(
+        "product.product",
+        string="Productos de la Ruta",
+        compute="_compute_route_products",
+        store=True,
+    )
+
+    @api.depends("sale_address_id.route_id.product")
+    def _compute_route_products(self):
+        for rec in self:
+            rec.route_product_ids = rec.sale_address_id.route_id.product.ids
 
 
 class RouteSaleTastingLine(models.Model):
@@ -769,10 +939,12 @@ class RouteSaleTastingLine(models.Model):
         ondelete="cascade",
         required=True,
     )
+
     product_id = fields.Many2one(
         "product.product",
         string="Producto para degustación",
         required=True,
+        domain="[('id', 'in', route_product_ids)]",
     )
     quantity = fields.Float(
         string="Cantidad para degustación",
@@ -785,7 +957,19 @@ class RouteSaleTastingLine(models.Model):
         related="product_id.uom_id",
         readonly=True,
     )
+
     lot_id = fields.Many2one("stock.lot", string="Lote")
+    route_product_ids = fields.Many2many(
+        "product.product",
+        string="Productos de la Ruta",
+        compute="_compute_route_products",
+        store=True,
+    )
+
+    @api.depends("sale_address_id.route_id.product")
+    def _compute_route_products(self):
+        for rec in self:
+            rec.route_product_ids = rec.sale_address_id.route_id.product.ids
 
 
 class Address(models.Model):
