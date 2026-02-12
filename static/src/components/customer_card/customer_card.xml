@@ -370,7 +370,8 @@
                                                         class="btn-close"
                                                         t-on-click="closeSignatureModalTasting"/>
                                                 </div>
-                                                <div class="modal-body text-center">
+                                                <div class="modal-body text-center mx-3"
+                                                    style="background-color: white;">
                                                     <canvas t-ref="signatureCanvas"
                                                         width="614"
                                                         height="204"
