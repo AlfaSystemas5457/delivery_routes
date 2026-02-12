@@ -81,6 +81,36 @@
         </field>
     </record>
 
+    <record id="view_route_address_search"
+        model="ir.ui.view">
+        <field name="name">route.address.search</field>
+        <field name="model">route.address</field>
+        <field name="arch"
+            type="xml">
+            <search string="Buscar Rutas">
+                <field name="name"/>
+                <field name="salesperson_ids"/>
+                <field name="warehouse_id"/>
+
+                <filter name="my_routes"
+                    string="Mis Rutas"
+                    domain="[('salesperson_ids', 'in', [uid])]"/>
+
+                <group>
+                    <filter string="Repartidor"
+                        name="group_by_salesperson"
+                        context="{'group_by': 'salesperson_ids'}"/>
+                    <filter string="Almacén"
+                        name="group_by_warehouse"
+                        context="{'group_by': 'warehouse_id'}"/>
+                    <filter string="Días de Visita"
+                        name="group_by_dates"
+                        context="{'group_by': 'dates'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="action_route_address"
         model="ir.actions.act_window">
         <field name="name">Diseño de rutas</field>

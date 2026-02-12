@@ -141,6 +141,52 @@
         </field>
     </record>
 
+    <record id="view_route_route_search"
+        model="ir.ui.view">
+        <field name="name">route.route.search</field>
+        <field name="model">route.route</field>
+        <field name="arch"
+            type="xml">
+            <search string="Buscar Rutas de Venta">
+                <field name="name"
+                    string="Referencia o Descripción"
+                    filter_domain="['|', ('name', 'ilike', self), ('description', 'ilike', self)]"/>
+                <field name="salesperson_ids"
+                    string="Repartidor"/>
+                <field name="warehouse_id"/>
+                <field name="product"/>
+
+                <separator/>
+                <filter string="En Borrador"
+                    name="state_start"
+                    domain="[('state', '=', 'start')]"/>
+                <filter string="En Proceso"
+                    name="state_process"
+                    domain="[('state', '=', 'process')]"/>
+                <filter string="Finalizadas"
+                    name="state_end"
+                    domain="[('state', '=', 'end')]"/>
+
+                <separator/>
+                <filter string="Mis Rutas"
+                    name="my_routes"
+                    domain="[('salesperson_ids', 'in', [uid])]"/>
+
+                <group>
+                    <filter string="Estado"
+                        name="group_by_state"
+                        context="{'group_by': 'state'}"/>
+                    <filter string="Almacén"
+                        name="group_by_warehouse"
+                        context="{'group_by': 'warehouse_id'}"/>
+                    <filter string="Fecha de Creación"
+                        name="group_by_date"
+                        context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="action_route"
         model="ir.actions.act_window">
         <field name="name">Rutas de Venta</field>

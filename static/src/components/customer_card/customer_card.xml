@@ -25,18 +25,21 @@
                     </div>
                 </div>
 
-                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 border-bottom w-100">
-                    <t t-if="address.address">
-                        <div>
-                            <h3>
+                <div class="d-flex align-items-center p-3 border-bottom w-100"
+                    style="gap: 10px;">
+
+                    <div class="flex-grow-1">
+                        <t t-if="address.address">
+                            <h3 class="mb-0">
                                 <strong class="fs-2">
                                     <t t-out="address.address"/>
                                 </strong>
                             </h3>
-                        </div>
-                    </t>
-                    <t t-if="localAddress.status">
-                        <div class="mt-2">
+                        </t>
+                    </div>
+
+                    <div class="flex-shrink-0 ms-auto">
+                        <t t-if="localAddress.status">
                             <select class="form-select w-auto"
                                 t-att-class="{
                                         'bg-warning font-color-black': localAddress.status === 'pending',
@@ -55,8 +58,8 @@
                                     </option>
                                 </t>
                             </select>
-                        </div>
-                    </t>
+                        </t>
+                    </div>
                 </div>
 
                 <!-- Steps -->

@@ -409,7 +409,7 @@ class RouteSaleAddress(models.Model):
             }
         )
 
-        for line in self.return_lines:
+        for line in self.tasting_lines:
             if line.quantity <= 0:
                 continue
 
