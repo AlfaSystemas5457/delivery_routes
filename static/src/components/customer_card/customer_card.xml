@@ -127,7 +127,8 @@
                                                             t-as="lot"
                                                             t-key="lot.id">
                                                             <option t-att-value="lot.id"
-                                                                t-att-selected="line.lot_id and line.lot_id[0] === lot.id">
+                                                                t-att-selected="line.lot_id and line.lot_id[0] === lot.id"
+                                                                t-if="line.product_id[0] == lot.product_id[0]">
                                                                 <t t-esc="lot.name"/>
                                                             </option>
                                                         </t>
@@ -214,7 +215,8 @@
                                                                 t-as="lot"
                                                                 t-key="lot.id">
                                                                 <option t-att-value="lot.id"
-                                                                    t-att-selected="line.lot_id and line.lot_id[0] === lot.id">
+                                                                    t-att-selected="line.lot_id and line.lot_id[0] === lot.id"
+                                                                    t-if="line.product_id[0] == lot.product_id[0]">
                                                                     <t t-esc="lot.name"/>
                                                                 </option>
                                                             </t>
@@ -314,7 +316,8 @@
                                                                 t-as="lot"
                                                                 t-key="lot.id">
                                                                 <option t-att-value="lot.id"
-                                                                    t-att-selected="line.lot_id and line.lot_id[0] === lot.id">
+                                                                    t-att-selected="line.lot_id and line.lot_id[0] === lot.id"
+                                                                    t-if="line.product_id[0] == lot.product_id[0]">
                                                                     <t t-esc="lot.name"/>
                                                                 </option>
                                                             </t>

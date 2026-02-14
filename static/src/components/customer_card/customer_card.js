@@ -193,7 +193,7 @@ export class CustomerCard extends Component {
             this.localAddress.lot_ids = await this.orm.searchRead(
                 "stock.lot",
                 [["product_id", "in", productIds]],
-                ["id", "name"],
+                ["id", "name", "product_id"],
             );
 
             this.props.onProductsLoaded?.(this.props.address.id);
