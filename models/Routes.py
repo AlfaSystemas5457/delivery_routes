@@ -191,6 +191,19 @@ class Route(models.Model):
         for rec in self:
             rec.state = "start"
 
+    def print_cash_out_report(self):
+        self.ensure_one()
+        if not self.cash_out_report:
+            self.regenerate_cash_out_report()
+
+        nombre_archivo = f"Corte_{self.name}.pdf"
+
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/web/content?model={self._name}&id={self.id}&field=cash_out_report&filename={nombre_archivo}&download=true",
+            "target": "self",
+        }
+
     def get_cash_out_report(self):
         self.ensure_one()
         self.regenerate_cash_out_report()
