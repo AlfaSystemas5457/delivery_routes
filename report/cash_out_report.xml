@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_route_cash_out">
+        <t t-call="web.html_container">
+            <t t-foreach="docs"
+                t-as="record">
+
+                <t t-set="layout_document_title">
+                    <span class="text-center">Corte de caja - <t t-out="record.name or 'N/A'"/>
+                    </span>
+                </t>
+
+                <t t-call="web.external_layout">
+                    <main class="article container h-100 w-100 p-2">
+                        <div class="page mt-2">
+                            <div style="font-size:16px">
+                                <div>
+                                    <span class="mb-1">Fecha: <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y %H:%M')"/>
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="mb-1">Responsable: <t t-out="record.user_id.name"/>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <t t-if="record.route_address_ids">
+                                <div class="w-100">
+                                    <h2 class="text-center"
+                                        style="font-size:20px">Pedido</h2>
+                                </div>
+                                <table class="table table-sm table-borderless mt16"
+                                    style="font-size:14px">
+                                    <thead>
+                                        <tr>
+                                            <th class="px-3">Producto</th>
+                                            <th class="px-3">Lote</th>
+                                            <th class="px-3">Cantidad</th>
+                                            <th class="px-3">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="record.route_address_ids"
+                                            t-as="line">
+                                            <tr t-if="line.status in ['skipped', 'visited']">
+                                                <td colspan="4"
+                                                    class="px-3"
+                                                    style="font-style: italic; color: #555; font-weight: bold; background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <span>
+                                                                <t t-esc="line.contact.name"/>
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <span>
+                                                                <t t-esc="{
+                                                                    'pending': 'Pendiente',
+                                                                    'skipped': 'Visitado sin pedido',
+                                                                    'visited': 'Visitado con pedido',
+                                                                }[line.status]"
+                                                                    class="ml-2"/>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <t t-foreach="line.product_lines"
+                                                t-as="product">
+                                                <t t-if="product.quantity > 0">
+                                                    <tr>
+                                                        <td class="px-3"
+                                                            style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
+                                                            <span t-esc="product.product_id.name" />
+                                                        </td>
+                                                        <td class="px-3"
+                                                            style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
+                                                            <span t-esc="product.lot_id.name" />
+                                                        </td>
+                                                        <td class="px-3"
+                                                            style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
+                                                            <span t-esc="product.quantity" />
+                                                        </td>
+                                                        <td class="px-3"
+                                                            style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
+                                                            <span t-esc="product.quantity * product.product_id.list_price" />
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </t>
+                                        </t>
+                                    </tbody>
+                                </table>
+
+                                <div class="d-flex justify-content-end mt-2">
+                                    <span class="font-weight-bold mr-4"
+                                        style="font-size: 2em;">
+                                            Total: <span t-field="record.amount_total"
+                                        t-options='{"widget": "monetary", "display_currency": record.currency_id}'/>
+                                    </span>
+                                </div>
+                            </t>
+
+                            <div class="row">
+                                <t t-if="record.route_address_ids">
+                                    <div>
+                                        <div>
+                                            <h2 class="text-center"
+                                                style="font-size:20px">Devoluciones</h2>
+                                        </div>
+                                        <table class="table table-sm table-borderless mt16"
+                                            style="font-size:14px">
+                                            <thead>
+                                                <tr>
+                                                    <th class="px-3">Producto</th>
+                                                    <th class="px-3">Lote</th>
+                                                    <th class="px-3">Cantidad</th>
+                                                    <th class="px-3">Subtotal</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="record.route_address_ids"
+                                                    t-as="line">
+                                                    <t t-if="line.is_refunded">
+                                                        <tr t-if="line.status in ['skipped', 'visited']"
+                                                            style="background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
+                                                            <td colspan="4"
+                                                                class="px-3"
+                                                                style="font-style: italic; color: #555; font-weight: bold;">
+                                                                <div class="d-flex justify-content-between align-items-center">
+                                                                    <div>
+                                                                        <span>
+                                                                            <t t-esc="line.contact.name"/>
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <t t-foreach="line.return_lines"
+                                                            t-as="product">
+                                                            <t t-if="product.quantity > 0">
+                                                                <tr style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
+                                                                    <td class="px-3">
+                                                                        <span t-esc="product.product_id.name" />
+                                                                    </td>
+                                                                    <td class="px-3">
+                                                                        <span t-esc="product.lot_id.name" />
+                                                                    </td>
+                                                                    <td class="px-3">
+                                                                        <span t-esc="product.quantity" />
+                                                                    </td>
+                                                                    <td class="px-3">
+                                                                        <span t-esc="product.quantity * product.product_id.list_price" />
+                                                                    </td>
+                                                                </tr>
+                                                            </t>
+                                                        </t>
+                                                    </t>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+
+                                <t t-if="record.route_address_ids">
+                                    <div>
+                                        <div>
+                                            <h2 class="text-center"
+                                                style="font-size:20px">Degustaciones</h2>
+                                        </div>
+                                        <table class="table table-sm table-borderless mt16"
+                                            style="font-size:14px">
+                                            <thead>
+                                                <tr>
+                                                    <th class="px-3">Producto</th>
+                                                    <th class="px-3">Lote</th>
+                                                    <th class="px-3">Cantidad</th>
+                                                    <th class="px-3">Subtotal</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="record.route_address_ids"
+                                                    t-as="line">
+                                                    <t t-if="line.is_tasted">
+                                                        <tr t-if="line.status in ['skipped', 'visited']"
+                                                            style="background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
+                                                            <td colspan="4"
+                                                                class="px-3"
+                                                                style="font-style: italic; color: #555; font-weight: bold;">
+                                                                <div class="d-flex justify-content-between align-items-center">
+                                                                    <div>
+                                                                        <span>
+                                                                            <t t-esc="line.contact.name"/>
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <t t-foreach="line.tasting_lines"
+                                                            t-as="product">
+                                                            <t t-if="product.quantity > 0">
+                                                                <tr style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
+                                                                    <td class="px-3">
+                                                                        <span t-esc="product.product_id.name" />
+                                                                    </td>
+                                                                    <td class="px-3">
+                                                                        <span t-esc="product.lot_id.name" />
+                                                                    </td>
+                                                                    <td class="px-3">
+                                                                        <span t-esc="product.quantity" />
+                                                                    </td>
+                                                                    <td class="px-3">
+                                                                        <span t-esc="product.quantity * product.product_id.list_price" />
+                                                                    </td>
+                                                                </tr>
+                                                            </t>
+                                                        </t>
+                                                    </t>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <div class="oe_structure" />
+                            <div class="text-muted border border-dark rounded p-2"
+                                style="width:100%; height: 150px; font-size:18px;">
+                                <span>Firma</span>
+                            </div>
+                            <div class="oe_structure" />
+                        </div>
+                    </main>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_route_cash_out"
+        model="ir.actions.report">
+        <field name="name">Corte de dinero en Ruta</field>
+        <field name="model">route.route</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">delivery_routes.report_route_cash_out</field>
+        <field name="report_file">delivery_routes.report_route_cash_out</field>
+        <field name="paperformat_id"
+            ref="delivery_routes.custom_paperformat_a4_delivery" />
+        <field name="print_report_name">'Corte de dinero %s' % object.name</field>
+        <field name="binding_model_id"
+            ref="delivery_routes.model_route_route" />
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

@@ -38,6 +38,11 @@
                         type="object"
                         class="btn-secondary"
                         groups="delivery_routes.group_route_access_all" />
+                    <button name="regenerate_cash_out_report"
+                        string="Rehacer PDF de corte"
+                        type="object"
+                        class="btn-secondary"
+                        groups="delivery_routes.group_route_access_all" />
                 </header>
                 <sheet>
                     <group>
@@ -69,7 +74,9 @@
                             <field name="currency_id"
                                 invisible="1"/>
                             <field name="amount_total"
-                                readonly="1"/>
+                                readonly="1"
+                                widget="monetary"
+                                options="{'currency_field': 'currency_id'}"/>
                         </group>
                         <group>
                             <button string="Recargar direcciones"
@@ -106,6 +113,13 @@
                                         icon="fa-map"/>
                                 </list>
                             </field>
+                        </page>
+                        <page string="Reporte de corte"
+                            invisible="not cash_out_report">
+                            <field name="cash_out_report"
+                                widget="pdf_viewer"
+                                nolabel="1"
+                                readonly="1"/>
                         </page>
                     </notebook>
                 </sheet>

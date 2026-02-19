@@ -94,11 +94,13 @@
                                         </ul>
                                     </div>
 
-                                    <div class="p-4 w-100 w-md-50"
+                                    <div class="p-4 w-100 w-md-50 d-flex flex-row"
                                         t-if="route.amount_total">
-                                        <h3 class="mb-3">Total de la Ruta:</h3>
-                                        <span class="fs-4 mb-0">$                                            <t t-out="route.amount_total"/>
-                                        </span>
+                                        <div class="d-flex flex-column">
+                                            <h3 class="mb-3">Total de la Ruta:</h3>
+                                            <span class="fs-4 mb-2">$                                                <t t-out="route.amount_total.toFixed(2)"/>
+                                            </span>
+                                        </div>
                                     </div>
                                 </t>
                                 <t t-else="">

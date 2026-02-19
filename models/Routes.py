@@ -1,5 +1,5 @@
 from odoo import models, fields, api, exceptions
-from datetime import datetime, date
+from datetime import datetime
 import base64
 import pytz
 
@@ -54,6 +54,8 @@ class Route(models.Model):
         default=lambda self: self.env.company.currency_id,
         required=True,
     )
+
+    cash_out_report = fields.Binary(string="Reporte de corte", readonly=True)
 
     @api.depends("route_address_ids.sale_order_id.amount_total")
     def _compute_amount_total(self):
@@ -180,11 +182,39 @@ class Route(models.Model):
 
     def action_end(self):
         for rec in self:
+            if not rec.cash_out_report:
+                cash_out_report = rec.generate_cash_out_report()
+                rec.write({"cash_out_report": cash_out_report, "state": "end"})
             rec.state = "end"
 
     def action_start(self):
         for rec in self:
             rec.state = "start"
+
+    def get_cash_out_report(self):
+        self.ensure_one()
+        self.regenerate_cash_out_report()
+
+        return {
+            "ticket_pdf": self.cash_out_report,
+            "filename": f"Corte_{self.name}.pdf",
+        }
+
+    def regenerate_cash_out_report(self):
+        self.ensure_one()
+
+        cash_out_report = self.generate_cash_out_report()
+        self.write({"cash_out_report": cash_out_report})
+
+    def generate_cash_out_report(self):
+        report_name = "delivery_routes.action_report_route_cash_out"
+        report_obj = self.env.ref(report_name)
+
+        pdf_content, content_type = self.env["ir.actions.report"]._render_qweb_pdf(
+            report_obj.report_name, [self.id]
+        )
+
+        return base64.b64encode(pdf_content).decode("utf-8")
 
 
 class RouteSaleAddress(models.Model):
@@ -242,6 +272,10 @@ class RouteSaleAddress(models.Model):
 
     ticket_pdf = fields.Binary(string="Ticket PDF", readonly=True)
     current_step = fields.Integer(default=0)
+
+    delivery_time = fields.Datetime(string="Hora de la entrega")
+    refund_time = fields.Datetime(string="Hora de la devolución")
+    tasting_time = fields.Datetime(string="Hora de la entrega de la degustación")
 
     def _compute_state(self):
         for rec in self:
@@ -364,7 +398,13 @@ class RouteSaleAddress(models.Model):
         picking.action_confirm()
         picking.button_validate()
 
-        self.write({"is_refunded": True, "refund_id": picking.id})
+        self.write(
+            {
+                "is_refunded": True,
+                "refund_id": picking.id,
+                "refund_time": fields.Datetime.now(),
+            }
+        )
 
         return picking
 
@@ -436,7 +476,13 @@ class RouteSaleAddress(models.Model):
 
         picking.action_confirm()
 
-        self.write({"is_tasted": True, "tasting_id": picking.id})
+        self.write(
+            {
+                "is_tasted": True,
+                "tasting_id": picking.id,
+                "tasting_time": fields.Datetime.now(),
+            }
+        )
 
         if signature:
             picking.button_validate()
@@ -474,14 +520,10 @@ class RouteSaleAddress(models.Model):
 
     def get_ticket_pos(self):
         self.ensure_one()
-
-        if not self.ticket_pdf:
-            self.generate_ticket()
-
-        ticket_b64 = self.ticket_pdf
+        self.generate_ticket()
 
         return {
-            "ticket_pdf": ticket_b64,
+            "ticket_pdf": self.ticket_pdf,
             "filename": f"ticket_{self.id}.pdf",
         }
 
@@ -495,6 +537,8 @@ class RouteSaleAddress(models.Model):
                     "origin": "Ruta: %s" % (record.route_id.name or ""),
                     "warehouse_id": record.route_id.warehouse_id.id,
                     "user_id": self.env.user.id,
+                    "preferred_payment_method_line_id": self.contact.property_inbound_payment_method_line_id.id
+                    or False,
                 }
             )
 
@@ -510,8 +554,13 @@ class RouteSaleAddress(models.Model):
                         }
                     )
 
-            record.sale_order_id = order
-            record.status = "visited"
+            self.write(
+                {
+                    "sale_order_id": order,
+                    "status": "visited",
+                    "delivery_time": fields.Datetime.now(),
+                }
+            )
             record.generate_ticket()
             return {
                 "type": "ir.actions.act_window",
@@ -821,6 +870,8 @@ class RouteSaleAddress(models.Model):
                 "origin": "Ruta: %s" % (self.route_id.name or ""),
                 "warehouse_id": self.route_id.warehouse_id.id,
                 "user_id": self.env.user.id,
+                "preferred_payment_method_line_id": self.contact.property_inbound_payment_method_line_id.id
+                or False,
             }
         )
 
@@ -836,8 +887,13 @@ class RouteSaleAddress(models.Model):
                     }
                 )
 
-        self.sale_order_id = order
-        self.status = "visited"
+        self.write(
+            {
+                "sale_order_id": order,
+                "status": "visited",
+                "delivery_time": fields.Datetime.now(),
+            }
+        )
         self.generate_ticket()
 
         return {

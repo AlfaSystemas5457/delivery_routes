@@ -41,27 +41,104 @@
                         </div>
 
                         <h4>Productos:</h4>
-                        <table class="table table-sm">
-                            <thead>
+                        <table class="table table-sm mb-0">
+                            <thead class="mb-0">
                                 <tr>
                                     <th>Producto</th>
                                     <th>Cantidad</th>
+                                    <th>Subtotal</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="mb-0">
                                 <t t-foreach="record.product_lines"
                                     t-as="line">
                                     <tr>
                                         <td>
-                                            <t t-esc="line.product_id.name" />
+                                            <span class="text-wrap">
+                                                <t t-esc="line.product_id.name" />
+                                            </span>
                                         </td>
                                         <td>
-                                            <t t-esc="line.quantity" />
+                                            <span>
+                                                <t t-esc="line.quantity" />
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span>
+                                                <t t-esc="line.quantity * line.product_id.list_price" />
+                                            </span>
                                         </td>
                                     </tr>
                                 </t>
                             </tbody>
                         </table>
+                        <div class="d-flex justify-content-end mt-2">
+                            <span class="font-weight-bold mr-4"
+                                style="font-size: 1.2em;">
+                                Total: <span t-esc="record.sale_order_id.amount_total" />
+                            </span>
+                        </div>
+                        <br/>
+
+                        <t t-if="record.is_refunded">
+                            <h4>Devoluciones:</h4>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="record.return_lines"
+                                        t-as="line">
+                                        <tr>
+                                            <td>
+                                                <span class="text-wrap">
+                                                    <t t-esc="line.product_id.name" />
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span>
+                                                    <t t-esc="line.quantity" />
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                            <br/>
+                        </t>
+
+                        <t t-if="record.is_tasted">
+                            <h4>Degustaciones:</h4>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="record.tasting_lines"
+                                        t-as="line">
+                                        <tr>
+                                            <td>
+                                                <span class="text-wrap">
+                                                    <t t-esc="line.product_id.name" />
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span>
+                                                    <t t-esc="line.quantity" />
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                            <br/>
+                        </t>
 
                         <br/>
                         <br/>

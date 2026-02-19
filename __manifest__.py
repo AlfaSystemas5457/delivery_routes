@@ -18,6 +18,7 @@
         "report/report.xml",
         "report/report_delivery.xml",
         "report/report_invoice.xml",
+        "report/cash_out_report.xml",
         "views/pos_view.xml",
         "views/view_picking.xml",
         "views/account_move_view.xml",

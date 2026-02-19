@@ -46,7 +46,7 @@ export class DeliveryPosView extends Component {
             const routes = await this.orm.searchRead(
                 "route.route",
                 [["user_id", "=", this.state.config.driver_id[0]], ["state", "!=", "end"]],
-                ["name", "state", "route_address_ids", "product", "description", "amount_total"],
+                ["id", "name", "state", "route_address_ids", "product", "description", "amount_total"],
                 { limit: 1 }
             );
 
@@ -101,7 +101,12 @@ export class DeliveryPosView extends Component {
         try {
             if (this.state.activeRoute) {
                 const route = this.state.activeRoute;
-                await this.orm.write("route.route", [route.id], { state: "end" });
+                await this.onPrintRouteCashOut();
+                await this.orm.call(
+                    "route.route",
+                    "action_end",
+                    [[route.id]]
+                );
                 this.notification.add("Ruta finalizada correctamente", { type: "success" });
                 this.state.activeRoute = null;
                 await this._loadData();
@@ -154,6 +159,62 @@ export class DeliveryPosView extends Component {
         this.state.selectedAddress = null;
 
         await this._loadData();
+    }
+
+    base64ToBlob(base64, type) {
+        const binary = atob(base64);
+        const array = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            array[i] = binary.charCodeAt(i);
+        }
+        return new Blob([array], { type });
+    }
+
+    async onPrintRouteCashOut() {
+        try {
+            const result = await this.orm.call(
+                "route.route",
+                "get_cash_out_report",
+                [[this.state.activeRoute.id]]
+            );
+
+            if (!result.ticket_pdf) {
+                this.notification.add("No se generó el reporte", { type: "warning" });
+                return;
+            }
+
+            const blob = this.base64ToBlob(result.ticket_pdf, "application/pdf");
+            const url = URL.createObjectURL(blob);
+
+            const isPrintSupported = typeof window.print === "function" && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            if (!isPrintSupported) {
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `ticket_${this.localAddress.id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                return;
+            }
+
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src = url;
+
+            document.body.appendChild(iframe);
+
+            iframe.onload = () => {
+                try {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                } catch (e) {
+                    console.error("Error en print:", e);
+                }
+            };
+        } catch (error) {
+            this.notification.add("Error al imprimir reporte: " + error.message, { type: "danger" });
+        }
     }
 }
 registry.category("actions").add("delivery_routes.pos_view", DeliveryPosView);

@@ -9,26 +9,30 @@
                         <div class="d-flex flex-column justify-content-center">
                             <h2 class="text-center">Ticket de entrega</h2>
                             <h3 class="w-100 m-0">Datos del cliente</h3>
-                            <div t-if="record.partner_id">
-                                <h4 class="w-100 m-0 p-0">Nombre:</h4>
-                                <span t-esc="record.partner_id.name" />
-                            </div>
-                            <div t-if="record.partner_id">
-                                <h4 class="w-100 m-0">Dirección:</h4>
+                            <span t-if="record.partner_id">
+                                <strong class="w-100 m-0 p-0">Nombre:</strong>
+                                <t t-esc="record.partner_id.name" />
+                                <br/>
+                            </span>
+                            <span t-if="record.partner_id">
+                                <strong class="w-100 m-0">Dirección:</strong>
                                 <span t-out="', '.join(filter(None, [record.partner_id.street, record.partner_id.street2, record.partner_id.city]))"/>
                                 <span t-if="record.partner_id.state_id"
                                     t-out="' %s %s' % (record.partner_id.state_id.name, record.partner_id.country_id.name)"/>
                                 <span t-if="record.partner_id.zip"
                                     t-field="record.partner_id.zip"/>
-                            </div>
-                            <div t-if="record.sale_id.user_id">
-                                <h3 class="w-100 m-0">Agente:</h3>
-                                <span t-esc="record.sale_id.user_id.name" />
-                            </div>
-                            <div t-if="record.date_done">
-                                <h3 class="w-100 m-0">Fecha de entrega:</h3>
-                                <span t-esc="record.date_done" />
-                            </div>
+                                <br/>
+                            </span>
+                            <span t-if="record.sale_id.user_id">
+                                <strong class="w-100 m-0">Agente:</strong>
+                                <t t-esc="record.sale_id.user_id.name" />
+                                <br/>
+                            </span>
+                            <span t-if="record.date_done">
+                                <strong class="w-100 m-0">Fecha de entrega:</strong>
+                                <t t-esc="record.date_done" />
+                                <br/>
+                            </span>
                         </div>
 
                         <table class="table table-sm table-borderless mt16">

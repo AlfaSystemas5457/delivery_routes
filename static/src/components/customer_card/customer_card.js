@@ -1,5 +1,6 @@
 /** @odoo-module **/
-import { Component, useState, onMounted, useRef, onPatched } from "@odoo/owl";
+import { Component, useState, onMounted, useRef, onPatched, markup } from "@odoo/owl";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { useService } from "@web/core/utils/hooks";
 
 export class CustomerCard extends Component {
@@ -515,13 +516,30 @@ export class CustomerCard extends Component {
     async create_refund_picking() {
         try {
             await this.saveProductsRefund()
-            await this.orm.call(
-                "route.sale.address",
-                "create_return_picking",
-                [[this.localAddress.id]]
-            );
 
-            this.loadProducts()
+            this.env.services.dialog.add(ConfirmationDialog, {
+                title: "Confirmar Devolución",
+                body: markup(
+                    `<div class="d-flex flex-column">
+                        <p class="fs-5 fw-bold m-0 p-0" >¿Desea registrar esta devolución ahora?</p>
+                        <div class="alert alert-warning d-inline-block text-center mb-0 mt-3"><i class="fa fa-exclamation-triangle me-2"></i>Esta operación generará movimientos de inventario que <strong>no podrán revertirse o modificarse</strong>. Por favor, verifique los datos antes de continuar.</div>
+                    </div>`
+                ),
+                confirmLabel: "Confirmar",
+                cancelLabel: "Descartar",
+                confirm: async () => {
+                    await this.orm.call(
+                        "route.sale.address",
+                        "create_return_picking",
+                        [[this.localAddress.id]]
+                    );
+
+                    this.loadProducts()
+                },
+                cancel: () => {
+                    return;
+                },
+            });
         } catch (error) {
             this.notification.add("Error al crear devolución: " + error.message, { type: "danger" });
         }
