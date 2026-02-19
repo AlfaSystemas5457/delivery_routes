@@ -101,9 +101,9 @@
                                 </div>
                             </t>
 
-                            <div class="row">
+                            <div class="d-flex flex-row justify-content-center flex-wrap w-100">
                                 <t t-if="record.route_address_ids">
-                                    <div>
+                                    <div class="flex-fill p-2 w-50">
                                         <div>
                                             <h2 class="text-center"
                                                 style="font-size:20px">Devoluciones</h2>
@@ -122,8 +122,7 @@
                                                 <t t-foreach="record.route_address_ids"
                                                     t-as="line">
                                                     <t t-if="line.is_refunded">
-                                                        <tr t-if="line.status in ['skipped', 'visited']"
-                                                            style="background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
+                                                        <tr style="background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
                                                             <td colspan="4"
                                                                 class="px-3"
                                                                 style="font-style: italic; color: #555; font-weight: bold;">
@@ -163,7 +162,7 @@
                                 </t>
 
                                 <t t-if="record.route_address_ids">
-                                    <div>
+                                    <div class="flex-fill p-2 w-50">
                                         <div>
                                             <h2 class="text-center"
                                                 style="font-size:20px">Degustaciones</h2>
@@ -182,8 +181,7 @@
                                                 <t t-foreach="record.route_address_ids"
                                                     t-as="line">
                                                     <t t-if="line.is_tasted">
-                                                        <tr t-if="line.status in ['skipped', 'visited']"
-                                                            style="background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
+                                                        <tr style="background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
                                                             <td colspan="4"
                                                                 class="px-3"
                                                                 style="font-style: italic; color: #555; font-weight: bold;">
