@@ -974,6 +974,18 @@ export class CustomerCard extends Component {
             const blob = this.base64ToBlob(result.ticket_pdf, "application/pdf");
             const url = URL.createObjectURL(blob);
 
+            const isPrintSupported = typeof window.print === "function" && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            if (!isPrintSupported) {
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `ticket_${this.localAddress.id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                return;
+            }
+
             const iframe = document.createElement("iframe");
             iframe.style.display = "none";
             iframe.src = url;
@@ -1139,6 +1151,18 @@ export class CustomerCard extends Component {
 
             const blob = this.base64ToBlob(result.ticket_pdf, "application/pdf");
             const url = URL.createObjectURL(blob);
+
+            const isPrintSupported = typeof window.print === "function" && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            if (!isPrintSupported) {
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `ticket_${this.localAddress.id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                return;
+            }
 
             const iframe = document.createElement("iframe");
             iframe.style.display = "none";

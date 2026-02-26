@@ -101,7 +101,7 @@
                                 </div>
                             </t>
 
-                            <div class="d-flex flex-row justify-content-center flex-wrap w-100">
+                            <div class="d-flex flex-row justify-content-center flex-wrap w-100 mb-2">
                                 <t t-if="record.route_address_ids">
                                     <div class="flex-fill p-2 w-50">
                                         <div>
@@ -113,7 +113,7 @@
                                             <thead>
                                                 <tr>
                                                     <th class="px-3">Producto</th>
-                                                    <th class="px-3">Movimiento</th>
+                                                    <th class="px-3">Mov.</th>
                                                     <th class="px-3">Cantidad</th>
                                                     <th class="px-3">Subtotal</th>
                                                 </tr>
@@ -172,7 +172,7 @@
                                             <thead>
                                                 <tr>
                                                     <th class="px-3">Producto</th>
-                                                    <th class="px-3">Movimiento</th>
+                                                    <th class="px-3">Mov.</th>
                                                     <th class="px-3">Cantidad</th>
                                                     <th class="px-3">Subtotal</th>
                                                 </tr>
