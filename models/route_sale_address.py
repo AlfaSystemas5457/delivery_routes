@@ -5,6 +5,7 @@ import base64
 class RouteSaleAddress(models.Model):
     _name = "route.sale.address"
     _description = "Dirección en Venta"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
 
     address = fields.Char(string="Dirección")
     contact = fields.Many2one("res.partner", string="Contacto", ondelete="cascade")
@@ -509,7 +510,6 @@ class RouteSaleAddress(models.Model):
                     "id",
                     "product_id",
                     "quantity",
-                    "lot_id",
                 ]
             ),
             "sale_order_id": self.sale_order_id.id if self.sale_order_id else False,
@@ -520,7 +520,6 @@ class RouteSaleAddress(models.Model):
                     "id",
                     "product_id",
                     "quantity",
-                    "lot_id",
                 ]
             ),
             "tasting_id": self.tasting_id.id if self.tasting_id else False,
@@ -530,7 +529,6 @@ class RouteSaleAddress(models.Model):
                     "id",
                     "product_id",
                     "quantity",
-                    "lot_id",
                 ]
             ),
         }

@@ -101,7 +101,6 @@
                                     <thead>
                                         <tr>
                                             <th>Producto</th>
-                                            <th>Lote</th>
                                             <th style="width: 120px;">Cantidad</th>
                                         </tr>
                                     </thead>
@@ -113,29 +112,6 @@
                                             <tr>
                                                 <td>
                                                     <t t-out="line.product_id[1]"/>
-                                                </td>
-                                                <td>
-                                                    <select class="form-select mb-2"
-                                                        t-if="localAddress.lot_ids and localAddress.lot_ids.length > 0"
-                                                        t-on-change="(ev) => this.onLotSelected(ev, line)"
-                                                        t-att-value="line.lot_id and line.lot_id[0] || ''"
-                                                        t-att-disabled="localAddress.sale_order_id ? true : undefined or localAddress.status === 'skipped'">
-                                                        <option value="">
-                                                            Seleccionar lote...
-                                                        </option>
-                                                        <t t-foreach="localAddress.lot_ids"
-                                                            t-as="lot"
-                                                            t-key="lot.id">
-                                                            <option t-att-value="lot.id"
-                                                                t-att-selected="line.lot_id and line.lot_id[0] === lot.id"
-                                                                t-if="line.product_id[0] == lot.product_id[0]">
-                                                                <t t-esc="lot.name"/>
-                                                            </option>
-                                                        </t>
-                                                    </select>
-                                                    <t t-if="!localAddress.lot_ids || localAddress.lot_ids.length === 0">
-                                                        <p class="text-muted">No hay lotes disponibles.</p>
-                                                    </t>
                                                 </td>
                                                 <td>
                                                     <input type="number"
@@ -576,6 +552,8 @@
                                     <thead>
                                         <tr>
                                             <th>Producto</th>
+                                            <th></th>
+                                            <th>Lote</th>
                                             <th>Demanda</th>
                                             <th>Cantidad</th>
                                             <th></th>
@@ -591,6 +569,17 @@
                                                         <t t-esc="line.product_id[1]"/>
                                                     </td>
                                                     <td>
+                                                        <button type="button"
+                                                            class="btn btn-outline-primary btn-sm"
+                                                            t-on-click="() => this.showLotForm(line)"
+                                                            t-att-disabled="localAddress.stock_picking_details.state === 'done'">
+                                                            <i class="fa fa-list"></i> Lotes
+                                                        </button>
+                                                    </td>
+                                                    <td>
+                                                        <t t-esc="getLotNamesForLine(line)"/>
+                                                    </td>
+                                                    <td>
                                                         <t t-esc="line.product_uom_qty"/>
                                                     </td>
                                                     <td>
@@ -601,7 +590,13 @@
                                                             <i class="fa fa-exclamation-circle fa-2x text-warning"
                                                                 data-bs-toggle="tooltip"
                                                                 data-bs-placement="top"
-                                                                title="La cantidad disponible es menor a la demanda" />
+                                                                title="La cantidad es menor a la demanda" />
+                                                        </t>
+                                                        <t t-if="line.quantity > line.product_uom_qty">
+                                                            <i class="fa fa-exclamation-circle fa-2x text-warning"
+                                                                data-bs-toggle="tooltip"
+                                                                data-bs-placement="top"
+                                                                title="La cantidad es mayor a la demanda" />
                                                         </t>
                                                     </td>
                                                 </tr>
@@ -669,6 +664,108 @@
                                 <h1 class="text-center">No se ha generado una entrega para este cliente.</h1>
                             </div>
                         </t>
+                    </div>
+                </div>
+
+                <!-- Lotes -->
+                <div class="step-content overflow-auto"
+                    t-att-class="{'d-none': localAddress.selected_line_id === null}">
+                    <div class="customer-card position-absolute top-0 start-0 w-100 h-100 d-flex flex-column p-0 p-sm-5">
+                        <div class="d-flex flex-row justify-content-between align-items-center bg-delivery p-3">
+                            <h3 class="text-center">Asignar lotes y cantidades
+                            </h3>
+                            <button type="button"
+                                class="btn-close"
+                                t-on-click="hideLotForm">
+                            </button>
+                        </div>
+                        <div class="m-0 bg-delivery w-100 h-100 p-3 overflow-auto d-flex flex-column">
+                            <div class="w-100 text-center p-1 mb-3">
+                                <span class="text-center font-color-white">La informacion se guarda automáticamente al seleccionar un lote o cambiar una cantidad.
+                                </span>
+                            </div>
+                            <div class="">
+                                <table class="table table-sm mb-auto">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Lote</th>
+                                            <th style="width: 120px;">Cantidad</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="localAddress.selected_line_move_ids"
+                                            t-as="line_lot"
+                                            t-key="line_lot.id">
+                                            <tr>
+                                                <td>
+                                                    <t t-esc="line_lot.product_id[1]"/>
+                                                </td>
+
+                                                <td>
+                                                    <select class="form-select mb-2"
+                                                        t-if="localAddress.lot_ids and localAddress.lot_ids.length > 0"
+                                                        t-on-change="(ev) => this.onLotLineSelected(ev, line_lot)"
+                                                        t-att-value="line_lot.lot_id and line_lot.lot_id[0] || ''"
+                                                        t-att-disabled="localAddress.stock_picking_details.state === 'done'">
+                                                        <option value="">Seleccionar lote...
+                                                        </option>
+                                                        <t t-foreach="localAddress.lot_ids"
+                                                            t-as="lot"
+                                                            t-key="lot.id">
+                                                            <option t-att-value="lot.id"
+                                                                t-att-selected="line_lot.lot_id and line_lot.lot_id[0] === lot.id"
+                                                                t-if="line_lot.product_id[0] == lot.product_id[0]">
+                                                                <t t-esc="lot.name"/>
+                                                            </option>
+                                                        </t>
+                                                    </select>
+                                                    <t t-if="!localAddress.lot_ids || localAddress.lot_ids.length === 0">
+                                                        <p class="text-muted">No hay lotes disponibles.</p>
+                                                    </t>
+                                                </td>
+
+                                                <td>
+                                                    <input type="number"
+                                                        min="0"
+                                                        class="form-control"
+                                                        t-att-id="'qty-lot-' + line_lot.id"
+                                                        t-att-name="'qty_product_lot_' + line_lot.product_id[0]"
+                                                        t-att-value="line_lot.quantity"
+                                                        t-att-disabled="localAddress.stock_picking_details.state === 'done'"
+                                                        t-on-input="(ev) => this.onLotQuantityChange(ev, line_lot)"/>
+                                                </td>
+                                                <td style="width: 4rem;">
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-danger"
+                                                        t-att-disabled="localAddress.stock_picking_details.state === 'done'"
+                                                        t-on-click="() => this.removeLot(line_lot)">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <tr>
+                                            <td colspan="3">
+                                                <div class="d-flex flex-row">
+                                                    <div>
+                                                        <button class="btn btn-primary mx-1"
+                                                            t-on-click="() => this.addLot()">Agregar lotes
+                                                        </button>
+                                                    </div>
+                                                    <div>
+                                                        <button class="btn btn-secondary mx-1"
+                                                            t-on-click="hideLotForm">Cerrar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

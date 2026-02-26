@@ -34,7 +34,7 @@
                                     <thead>
                                         <tr>
                                             <th class="px-3">Producto</th>
-                                            <th class="px-3">Lote</th>
+                                            <th class="px-3">Orden de venta</th>
                                             <th class="px-3">Cantidad</th>
                                             <th class="px-3">Subtotal</th>
                                         </tr>
@@ -75,7 +75,7 @@
                                                         </td>
                                                         <td class="px-3"
                                                             style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
-                                                            <span t-esc="product.lot_id.name" />
+                                                            <span t-esc="line.sale_order_id.name" />
                                                         </td>
                                                         <td class="px-3"
                                                             style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
@@ -113,7 +113,7 @@
                                             <thead>
                                                 <tr>
                                                     <th class="px-3">Producto</th>
-                                                    <th class="px-3">Lote</th>
+                                                    <th class="px-3">Movimiento</th>
                                                     <th class="px-3">Cantidad</th>
                                                     <th class="px-3">Subtotal</th>
                                                 </tr>
@@ -143,7 +143,7 @@
                                                                         <span t-esc="product.product_id.name" />
                                                                     </td>
                                                                     <td class="px-3">
-                                                                        <span t-esc="product.lot_id.name" />
+                                                                        <span t-esc="line.refund_id.name" />
                                                                     </td>
                                                                     <td class="px-3">
                                                                         <span t-esc="product.quantity" />
@@ -172,7 +172,7 @@
                                             <thead>
                                                 <tr>
                                                     <th class="px-3">Producto</th>
-                                                    <th class="px-3">Lote</th>
+                                                    <th class="px-3">Movimiento</th>
                                                     <th class="px-3">Cantidad</th>
                                                     <th class="px-3">Subtotal</th>
                                                 </tr>
@@ -202,7 +202,7 @@
                                                                         <span t-esc="product.product_id.name" />
                                                                     </td>
                                                                     <td class="px-3">
-                                                                        <span t-esc="product.lot_id.name" />
+                                                                        <span t-esc="line.tasting_id.name" />
                                                                     </td>
                                                                     <td class="px-3">
                                                                         <span t-esc="product.quantity" />

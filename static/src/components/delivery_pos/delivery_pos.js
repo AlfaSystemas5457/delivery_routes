@@ -46,7 +46,7 @@ export class DeliveryPosView extends Component {
             const routes = await this.orm.searchRead(
                 "route.route",
                 [["user_id", "=", this.state.config.driver_id[0]], ["state", "!=", "end"]],
-                ["id", "name", "state", "route_address_ids", "product", "description", "amount_total"],
+                ["id", "name", "state", "route_address_ids", "product", "description", "amount_total", "warehouse_id"],
                 { limit: 1 }
             );
 

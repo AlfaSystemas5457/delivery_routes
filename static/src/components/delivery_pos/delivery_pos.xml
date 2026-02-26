@@ -6,6 +6,7 @@
         <div class="delivery-pos-card o-view-background-color bg-delivery pos-container d-flex flex-column h-100">
             <t t-if="state.selectedAddress">
                 <CustomerCard address="state.selectedAddress"
+                    activeRoute="state.activeRoute"
                     onClose="() => this.onCloseAddressDetails()"
                     onProductsLoaded="(id) => this.handleProductsLoaded(id)"/>
             </t>

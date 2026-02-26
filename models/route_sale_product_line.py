@@ -17,9 +17,6 @@ class RouteSaleProductLine(models.Model):
     )
     quantity = fields.Float(string="Cantidad", default=1.0)
 
-    lot_id = fields.Many2one(
-        "stock.lot", string="Lote", domain="[('product_id', '=', product_id)]"
-    )
     route_product_ids = fields.Many2many(
         "product.product",
         string="Productos de la Ruta",

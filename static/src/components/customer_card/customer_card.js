@@ -8,6 +8,7 @@ export class CustomerCard extends Component {
 
     static props = {
         address: Object,
+        activeRoute: Object,
         onClose: Function,
         onProductsLoaded: Function,
     };
@@ -39,6 +40,10 @@ export class CustomerCard extends Component {
                 // producto
                 product_lines: [],
                 lot_ids: [],
+                lists_lot_selected_ids: [],
+                selected_line_id: null,
+                selected_lot_location_id: null,
+                selected_line_move_ids: [],
 
                 // venta
                 sale_order_id: this.props.address.sale_order_id,
@@ -135,6 +140,88 @@ export class CustomerCard extends Component {
         return this.localAddress.currentStep > 0;
     }
 
+    async addLot() {
+        try {
+            await this.orm.create(
+                "stock.move.line",
+                [{
+                    move_id: this.localAddress.selected_line_id.id,
+                    product_id: this.localAddress.selected_line_id.product_id[0],
+                    picking_id: this.localAddress.stock_picking_details.id,
+                }]
+            )
+            await this.getStockMoveLineLots(this.localAddress.selected_line_id.id);
+        } catch (error) {
+            this.notification.add("Error al agregar lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    async removeLot(line) {
+        try {
+            console.log("Removing lot line:", line);
+            await this.orm.unlink("stock.move.line", [line.id]);
+            await this.getStockMoveLineLots(this.localAddress.selected_line_id.id);
+        } catch (error) {
+            this.notification.add("Error al eliminar lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    async onLotLineSelected(ev, line_lot) {
+        try {
+            const selectedId = parseInt(ev.target.value, 10);
+            if (!selectedId) return;
+
+            await this.orm.write(
+                "stock.move.line",
+                [line_lot.id],
+                { lot_id: selectedId }
+            );
+        } catch (error) {
+            this.notification.add("Error al actualizar el lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    async onLotQuantityChange(ev, line_lot) {
+        try {
+            const value = parseFloat(ev.target.value) || 0;
+            await this.orm.write(
+                "stock.move.line",
+                [line_lot.id],
+                { quantity: value }
+            );
+        } catch (error) {
+            this.notification.add("Error al actualizar cantidad del lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    async getStockMoveLineLots(id) {
+        this.localAddress.selected_line_move_ids = await this.orm.searchRead(
+            "stock.move.line",
+            [["move_id", "=", id]],
+            ["id", "picking_id", "move_id", "product_id", "lot_id", "quantity"]
+        )
+    }
+
+    async showLotForm(line) {
+        try {
+            await this.getStockPickingDetails();
+            await this.getStockMoveLineLots(line.id);
+            this.localAddress.selected_line_id = line;
+        } catch (error) {
+            this.notification.add("Error al mostrar formulario de lotes: " + error.message, { type: "danger" });
+        }
+    }
+
+    async hideLotForm() {
+        try {
+            await this.getStockPickingDetails();
+            this.localAddress.selected_line_id = null;
+            this.localAddress.selected_line_move_ids = [];
+        } catch (error) {
+            this.notification.add("Error al cerrar formulario de lotes: " + error.message, { type: "danger" });
+        }
+    }
+
     async openMap() {
         try {
             const geo_locateion = await this.orm.call(
@@ -194,7 +281,7 @@ export class CustomerCard extends Component {
             this.localAddress.lot_ids = await this.orm.searchRead(
                 "stock.lot",
                 [["product_id", "in", productIds]],
-                ["id", "name", "product_id"],
+                ["id", "name", "product_id", "product_qty"],
             );
 
             this.props.onProductsLoaded?.(this.props.address.id);
@@ -243,26 +330,38 @@ export class CustomerCard extends Component {
         }
     }
 
-    async onLotSelected(ev, line) {
-        try {
-            const selectedId = parseInt(ev.target.value, 10);
-            if (!selectedId) return;
-
-            line.lot_id = [selectedId, ev.target.options[ev.target.selectedIndex].text];
-            this.localAddress.product_lines = [...this.localAddress.product_lines];
-
-            await this.orm.call(
-                "route.sale.product.line",
-                "write",
-                [[line.id], { lot_id: selectedId }]
-            );
-
-            this.notification.add("Lote actualizado", { type: "success" });
-        } catch (error) {
-            console.error(error)
-            this.notification.add("Error al actualizar el lote: " + (error.message || error), { type: "danger" });
+    getLotNamesForLine(line) {
+        if (!line.lot_ids || !this.localAddress.lot_ids) {
+            return "";
         }
+
+        return this.localAddress.lot_ids
+            .filter(lot => line.lot_ids.includes(lot.id))
+            .map(lot => lot.name)
+            .join(", ");
     }
+
+    // async onLotSelected(ev, line) {
+    //     return
+    //     try {
+    //         const selectedId = parseInt(ev.target.value, 10);
+    //         if (!selectedId) return;
+
+    //         line.lot_id = [selectedId, ev.target.options[ev.target.selectedIndex].text];
+    //         this.localAddress.product_lines = [...this.localAddress.product_lines];
+
+    //         await this.orm.call(
+    //             "route.sale.product.line",
+    //             "write",
+    //             [[line.id], { lot_id: selectedId }]
+    //         );
+
+    //         this.notification.add("Lote actualizado", { type: "success" });
+    //     } catch (error) {
+    //         console.error(error)
+    //         this.notification.add("Error al actualizar el lote: " + (error.message || error), { type: "danger" });
+    //     }
+    // }
 
     async onLotSelectedRefund(ev, line) {
         try {
@@ -908,7 +1007,7 @@ export class CustomerCard extends Component {
             const stock_moves = await this.orm.searchRead(
                 "stock.move",
                 [["picking_id", "=", this.localAddress.stock_picking_details.id]],
-                ["id", "product_id", "product_uom_qty", "quantity"]
+                ["id", "product_id", "product_uom_qty", "quantity", "lot_ids"]
             );
             this.localAddress.stock_picking_line_details = stock_moves.length > 0 ? stock_moves : [];
         } catch (error) {
