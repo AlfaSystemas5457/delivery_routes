@@ -64,8 +64,11 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <span>
+                                            <span t-if="not line.no_charge">
                                                 <t t-esc="line.quantity * line.product_id.list_price" />
+                                            </span>
+                                            <span t-if="line.no_charge">
+                                                Producto sin cargo
                                             </span>
                                         </td>
                                     </tr>

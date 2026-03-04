@@ -151,7 +151,6 @@ export class CustomerCard extends Component {
         try {
             this.localAddress.selected_line_id_tasting = line;
             await this.getStockMoveLineLotsTasting(this.localAddress.selected_line_id_tasting.id);
-            console.log(line)
         } catch (error) {
             this.notification.add("Error al mostrar formulario de lotes: " + error.message, { type: "danger" });
         }
@@ -179,7 +178,6 @@ export class CustomerCard extends Component {
 
     async addLotTasing() {
         try {
-            console.log(this.localAddress.selected_line_id_tasting)
             await this.orm.create(
                 "route.sale.tasting.move.line",
                 [{
@@ -200,7 +198,6 @@ export class CustomerCard extends Component {
             [["tasting_line_id", "=", id]],
             ["id", "tasting_line_id", "product_id", "lot_id", "quantity"]
         )
-        console.log(this.localAddress.selected_line_id_tasting_selected_move_line)
     }
 
     async onLotLineSelectedTasting(ev, line_lot) {
@@ -249,7 +246,6 @@ export class CustomerCard extends Component {
         try {
             this.localAddress.selected_line_id_refund = line;
             await this.getStockMoveLineLotsRefund(this.localAddress.selected_line_id_refund.id);
-            console.log(line)
         } catch (error) {
             this.notification.add("Error al mostrar formulario de lotes: " + error.message, { type: "danger" });
         }
@@ -277,7 +273,6 @@ export class CustomerCard extends Component {
 
     async addLotRefund() {
         try {
-            console.log(this.localAddress.selected_line_id_refund)
             await this.orm.create(
                 "route.sale.return.move.line",
                 [{
@@ -298,7 +293,6 @@ export class CustomerCard extends Component {
             [["return_line_id", "=", id]],
             ["id", "return_line_id", "product_id", "lot_id", "quantity"]
         )
-        console.log(this.localAddress.selected_line_id_refund_selected_move_line)
     }
 
     async onLotLineSelectedRefund(ev, line_lot) {
@@ -488,6 +482,8 @@ export class CustomerCard extends Component {
 
             this.props.onProductsLoaded?.(this.props.address.id);
             await this.loadAvailableProducts();
+            await this.loadAvailableProductsRefund();
+            await this.loadAvailableProductsTasting();
             await this.getSaleDetails();
             await this.loadPaymentTerms();
             await this.getStockPickingDetails();
@@ -624,6 +620,7 @@ export class CustomerCard extends Component {
                 [[this.localAddress.id]]
             );
             this.availableProductsRefund.items = allProducts || [];
+            console.log(this.availableProductsRefund.items)
         } catch (error) {
             this.notification.add(
                 "Error al cargar productos disponibles: " + error.message,
@@ -748,11 +745,31 @@ export class CustomerCard extends Component {
     }
 
     async onProductSelected(ev) {
-        const productId = parseInt(ev.target.value);
-        if (productId) {
-            this.addProductById(productId);
+        try {
+            console.log(this.localAddress.product_lines)
+            const productId = parseInt(ev.target.value);
+            console.log(productId)
+            if (!productId) return;
+
+            const line = await this.orm.call(
+                "route.sale.address",
+                "action_add_product_line",
+                [[this.localAddress.id], productId]
+            );
+
+            this.localAddress.product_lines = [
+                ...this.localAddress.product_lines,
+                line,
+            ];
+
+            this.loadAvailableProducts();
+            ev.target.value = "";
+        } catch (error) {
+            this.notification.add(
+                error.message || "Error al agregar producto",
+                { type: "danger" }
+            );
         }
-        this.loadAvailableProducts();
     }
 
     async onProductSelectedRefund(ev) {
@@ -772,6 +789,7 @@ export class CustomerCard extends Component {
             ];
 
             this.loadAvailableProductsRefund();
+            ev.target.value = "";
             this.notification.add("Producto agregado", { type: "success" });
         } catch (error) {
             this.notification.add(
@@ -798,6 +816,7 @@ export class CustomerCard extends Component {
             ];
 
             this.loadAvailableProductsTasting();
+            ev.target.value = "";
             this.notification.add("Producto agregado", { type: "success" });
         } catch (error) {
             this.notification.add(

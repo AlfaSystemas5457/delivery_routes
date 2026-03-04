@@ -572,32 +572,17 @@ class RouteSaleAddress(models.Model):
     def get_available_products(self):
         self.ensure_one()
         all_products = self.route_id.product
-        used_ids = self.product_lines.mapped("product_id").ids
-        return [
-            {"id": p.id, "product_id": [p.id, p.name]}
-            for p in all_products
-            if p.id not in used_ids
-        ]
+        return [{"id": p.id, "product_id": [p.id, p.name]} for p in all_products]
 
     def get_available_products_refund(self):
         self.ensure_one()
         all_products = self.route_id.product
-        used_ids = self.return_lines.mapped("product_id").ids
-        return [
-            {"id": p.id, "product_id": [p.id, p.name]}
-            for p in all_products
-            if p.id not in used_ids
-        ]
+        return [{"id": p.id, "product_id": [p.id, p.name]} for p in all_products]
 
     def get_available_products_tasting(self):
         self.ensure_one()
         all_products = self.route_id.product
-        used_ids = self.tasting_lines.mapped("product_id").ids
-        return [
-            {"id": p.id, "product_id": [p.id, p.name]}
-            for p in all_products
-            if p.id not in used_ids
-        ]
+        return [{"id": p.id, "product_id": [p.id, p.name]} for p in all_products]
 
     def action_add_product_line(self, productId):
         self.ensure_one()
@@ -673,6 +658,7 @@ class RouteSaleAddress(models.Model):
                         "product_uom_qty": line.quantity,
                         "price_unit": line.product_id.lst_price,
                         "name": line.product_id.name,
+                        "discount": 100 if line.no_charge else 0,
                     }
                 )
 

@@ -222,9 +222,11 @@
                             </div>
 
                             <div class="oe_structure" />
-                            <div class="text-muted border border-dark rounded p-2"
-                                style="width:100%; height: 150px; font-size:18px;">
-                                <span>Firma</span>
+                            <div style="page-break-inside: avoid;">
+                                <div class="text-muted border border-dark rounded p-2"
+                                    style="width:100%; height: 150px; font-size:18px;">
+                                    <span>Firma</span>
+                                </div>
                             </div>
                             <div class="oe_structure" />
                         </div>

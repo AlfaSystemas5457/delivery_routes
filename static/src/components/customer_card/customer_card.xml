@@ -46,6 +46,7 @@
                                         'bg-success font-color-white': localAddress.status === 'visited',
                                         'bg-danger font-color-white': localAddress.status === 'skipped',
                                     }"
+                                t-att-disabled="localAddress.sale_order_id ? true : undefined"
                                 t-att-value="localAddress.status"
                                 t-on-change="onStatusChange">
 
@@ -101,7 +102,9 @@
                                     <thead>
                                         <tr>
                                             <th>Producto</th>
+                                            <th style="width: 180px;">Producto sin cargo?</th>
                                             <th style="width: 120px;">Cantidad</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
 
@@ -113,7 +116,7 @@
                                                 <td>
                                                     <t t-out="line.product_id[1]"/>
                                                 </td>
-                                                <td>
+                                                <td class="text-center align-middle">
                                                     <div class="form-check form-switch">
                                                         <input type="checkbox"
                                                             class="form-check-input"
