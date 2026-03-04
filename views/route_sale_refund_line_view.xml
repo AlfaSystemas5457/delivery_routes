@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="route_sale_return_line_view_form"
+        model="ir.ui.view">
+        <field name="name">route.sale.return.line.view.form</field>
+        <field name="model">route.sale.return.line</field>
+        <field name="arch"
+            type="xml">
+            <form>
+                <sheet>
+                    <div>
+                        <h1>
+                            <field name="product_id"
+                                readonly="True"/>
+                        </h1>
+                    </div>
+                    <notebook>
+                        <page string="Movimientos">
+                            <field name="move_line"
+                                readonly="has_stock_move">
+                                <list editable="bottom">
+                                    <field name="lot_id" />
+                                    <field name="quantity" />
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -7,6 +7,8 @@ class RouteSaleAddress(models.Model):
     _description = "Dirección en Venta"
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
+    display_name = fields.Char(string="Nombre", compute="_compute_display_name")
+
     address = fields.Char(string="Dirección")
     contact = fields.Many2one("res.partner", string="Contacto", ondelete="cascade")
     route_id = fields.Many2one(
@@ -63,6 +65,16 @@ class RouteSaleAddress(models.Model):
     refund_time = fields.Datetime(string="Hora de la devolución")
     tasting_time = fields.Datetime(string="Hora de la entrega de la degustación")
 
+    def _compute_display_name(self):
+        for rec in self:
+            if rec.route_id and rec.contact:
+                rec.display_name = f"{rec.route_id.name} - {rec.contact.name}"
+                return
+
+            if rec.route_id:
+                rec.display_name = f"{rec.route_id.name} - NA"
+                return
+
     def _compute_state(self):
         for rec in self:
             rec.state = rec.route_id.state
@@ -105,16 +117,6 @@ class RouteSaleAddress(models.Model):
             or sum(line.quantity for line in self.tasting_lines) <= 0
         ):
             raise exceptions.UserError("No se asignaron productos.")
-
-    # def action_load_route_products(self):
-    #     for record in self:
-    #         if record.route_id and not record.product_lines:
-    #             product_lines = []
-    #             for product in record.route_id.product:
-    #                 product_lines.append(
-    #                     (0, 0, {"product_id": product.id, "quantity": 0.0})
-    #                 )
-    #             record.product_lines = product_lines
 
     def create_return_picking(self):
         self.ensure_one()
@@ -165,21 +167,21 @@ class RouteSaleAddress(models.Model):
                     "picking_id": picking.id,
                     "product_id": line.product_id.id,
                     "product_uom": line.product_id.uom_id.id,
-                    "product_uom_qty": 0,
+                    "product_uom_qty": line.quantity,
                 }
             )
 
-            MoveLine.create(
-                {
-                    "move_id": move.id,
-                    "location_id": picking.location_id.id,
-                    "location_dest_id": picking.location_dest_id.id,
-                    "product_id": line.product_id.id,
-                    "product_uom_id": line.product_id.uom_id.id,
-                    "lot_id": line.lot_id.id,
-                    "quantity": line.quantity,
-                }
-            )
+            for moveLine in line.move_line:
+                MoveLine.create(
+                    {
+                        "move_id": move.id,
+                        "picking_id": picking.id,
+                        "product_id": line.product_id.id,
+                        "product_uom_id": line.product_id.uom_id.id,
+                        "lot_id": moveLine.lot_id.id,
+                        "quantity": moveLine.quantity,
+                    }
+                )
 
         picking.action_confirm()
         picking.button_validate()
@@ -244,21 +246,21 @@ class RouteSaleAddress(models.Model):
                     "picking_id": picking.id,
                     "product_id": line.product_id.id,
                     "product_uom": line.product_id.uom_id.id,
-                    "product_uom_qty": 0,
+                    "product_uom_qty": line.quantity,
                 }
             )
 
-            MoveLine.create(
-                {
-                    "move_id": move.id,
-                    "location_id": picking.location_id.id,
-                    "location_dest_id": picking.location_dest_id.id,
-                    "product_id": line.product_id.id,
-                    "product_uom_id": line.product_id.uom_id.id,
-                    "lot_id": line.lot_id.id,
-                    "quantity": line.quantity,
-                }
-            )
+            for moveLine in line.move_line:
+                MoveLine.create(
+                    {
+                        "move_id": move.id,
+                        "picking_id": picking.id,
+                        "product_id": line.product_id.id,
+                        "product_uom_id": line.product_id.uom_id.id,
+                        "lot_id": moveLine.lot_id.id,
+                        "quantity": moveLine.quantity,
+                    }
+                )
 
         picking.action_confirm()
 
@@ -337,6 +339,7 @@ class RouteSaleAddress(models.Model):
                             "product_uom_qty": line.quantity,
                             "price_unit": line.product_id.lst_price,
                             "name": line.product_id.name,
+                            "discount": 100 if line.no_charge else 0,
                         }
                     )
 
@@ -509,6 +512,7 @@ class RouteSaleAddress(models.Model):
                 [
                     "id",
                     "product_id",
+                    "no_charge",
                     "quantity",
                 ]
             ),
@@ -518,6 +522,7 @@ class RouteSaleAddress(models.Model):
             "return_lines": self.return_lines.read(
                 [
                     "id",
+                    "lot_ids",
                     "product_id",
                     "quantity",
                 ]
@@ -527,6 +532,7 @@ class RouteSaleAddress(models.Model):
             "tasting_lines": self.tasting_lines.read(
                 [
                     "id",
+                    "lot_ids",
                     "product_id",
                     "quantity",
                 ]

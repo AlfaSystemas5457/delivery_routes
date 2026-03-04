@@ -30,6 +30,8 @@
         "views/address_view.xml",
         "views/stock_picking_signature.xml",
         "views/res_partner_view.xml",
+        "views/route_sale_tasting_line_view.xml",
+        "views/route_sale_refund_line_view.xml",
         "views/stock_report_delivery_document.xml",
     ],
     "assets": {

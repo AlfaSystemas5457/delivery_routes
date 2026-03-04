@@ -73,6 +73,8 @@
                                 readonly="sale_order_id or state != 'process'">
                                 <list editable="bottom">
                                     <field name="product_id"/>
+                                    <field name="no_charge"
+                                        widget="boolean_toggle"/>
                                     <field name="quantity"
                                         sum="Total Cantidad"/>
                                 </list>
@@ -84,9 +86,18 @@
                                 readonly="state != 'process' or is_refunded">
                                 <list editable="bottom">
                                     <field name="product_id"/>
-                                    <field name="lot_id"/>
+                                    <field name="lot_ids"
+                                        widget="many2many_tags"
+                                        readonly="1"/>
                                     <field name="quantity"
-                                        sum="Total Cantidad"/>
+                                        sum="Total Cantidad"
+                                        readonly="1"/>
+
+                                    <button name="action_show_details"
+                                        type="object"
+                                        icon="fa-list"
+                                        title="Detalles del lote"
+                                        groups="stock.group_production_lot"/>
                                 </list>
                             </field>
 
@@ -105,9 +116,18 @@
                                 readonly="state != 'process' or is_tasted">
                                 <list editable="bottom">
                                     <field name="product_id"/>
-                                    <field name="lot_id"/>
+                                    <field name="lot_ids"
+                                        widget="many2many_tags"
+                                        readonly="1"/>
                                     <field name="quantity"
-                                        sum="Total Cantidad"/>
+                                        sum="Total Cantidad"
+                                        readonly="1"/>
+
+                                    <button name="action_show_details"
+                                        type="object"
+                                        icon="fa-list"
+                                        title="Detalles del lote"
+                                        groups="stock.group_production_lot"/>
                                 </list>
                             </field>
 

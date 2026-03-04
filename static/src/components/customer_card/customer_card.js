@@ -2,9 +2,11 @@
 import { Component, useState, onMounted, useRef, onPatched, markup } from "@odoo/owl";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { useService } from "@web/core/utils/hooks";
+import { LotSelector } from "../lot_selector/lot_selector";
 
 export class CustomerCard extends Component {
     static template = "delivery_routes.CustomerCard";
+    static components = { LotSelector, ConfirmationDialog, LotSelector };
 
     static props = {
         address: Object,
@@ -64,11 +66,15 @@ export class CustomerCard extends Component {
                 refund_id: false,
                 is_refund: false,
                 return_lines: [],
+                selected_line_id_refund: null,
+                selected_line_id_refund_selected_move_line: [],
 
                 // degustaciones
                 tasting_id: false,
                 is_tasting: false,
                 tasting_lines: [],
+                selected_line_id_tasting: null,
+                selected_line_id_tasting_selected_move_line: [],
             }
         );
 
@@ -140,6 +146,203 @@ export class CustomerCard extends Component {
         return this.localAddress.currentStep > 0;
     }
 
+    // Lote de Tasting
+    async showLotFormTasting(line) {
+        try {
+            this.localAddress.selected_line_id_tasting = line;
+            await this.getStockMoveLineLotsTasting(this.localAddress.selected_line_id_tasting.id);
+            console.log(line)
+        } catch (error) {
+            this.notification.add("Error al mostrar formulario de lotes: " + error.message, { type: "danger" });
+        }
+    }
+
+    async hideLotFormTasting() {
+        try {
+            this.localAddress.selected_line_id_tasting = null;
+            await this.loadProducts()
+        } catch (error) {
+            this.notification.add("Error al cerrar formulario de lotes: " + error.message, { type: "danger" });
+        }
+    }
+
+    getLotNamesForLineTasting(line) {
+        if (!line.lot_ids || !this.localAddress.lot_ids) {
+            return "";
+        }
+
+        return this.localAddress.lot_ids
+            .filter(lot => line.lot_ids.includes(lot.id))
+            .map(lot => lot.name)
+            .join(", ");
+    }
+
+    async addLotTasing() {
+        try {
+            console.log(this.localAddress.selected_line_id_tasting)
+            await this.orm.create(
+                "route.sale.tasting.move.line",
+                [{
+                    tasting_line_id: this.localAddress.selected_line_id_tasting.id,
+                    product_id: this.localAddress.selected_line_id_tasting.product_id[0],
+                    quantity: 0,
+                }]
+            )
+            await this.getStockMoveLineLotsTasting(this.localAddress.selected_line_id_tasting.id);
+        } catch (error) {
+            this.notification.add("Error al agregar lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    async getStockMoveLineLotsTasting(id) {
+        this.localAddress.selected_line_id_tasting_selected_move_line = await this.orm.searchRead(
+            "route.sale.tasting.move.line",
+            [["tasting_line_id", "=", id]],
+            ["id", "tasting_line_id", "product_id", "lot_id", "quantity"]
+        )
+        console.log(this.localAddress.selected_line_id_tasting_selected_move_line)
+    }
+
+    async onLotLineSelectedTasting(ev, line_lot) {
+        try {
+            const selectedId = parseInt(ev.id, 10);
+            if (!selectedId) return;
+
+            await this.orm.write(
+                "route.sale.tasting.move.line",
+                [("tasting_line_id", "=", line_lot.id)],
+                { lot_id: selectedId }
+            );
+            await this.getStockMoveLineLotsTasting(this.localAddress.selected_line_id_tasting.id);
+        } catch (error) {
+            this.notification.add("Error al actualizar el lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    async onLotQuantityChangeTasting(ev, line_lot) {
+        try {
+            const value = parseInt(ev.target.value, 10);
+            if (!value) return;
+
+            await this.orm.write(
+                "route.sale.tasting.move.line",
+                [("tasting_line_id", "=", line_lot.id)],
+                { quantity: value }
+            );
+            await this.getStockMoveLineLotsTasting(this.localAddress.selected_line_id_tasting.id);
+        } catch (error) {
+            this.notification.add("Error al actualizar cantidad del lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    async removeLotTasting(line) {
+        try {
+            await this.orm.unlink("route.sale.tasting.move.line", [line.id]);
+            await this.getStockMoveLineLotsTasting(this.localAddress.selected_line_id_tasting.id);
+        } catch (error) {
+            this.notification.add("Error al eliminar lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    // Lote de Refund
+    async showLotFormRefund(line) {
+        try {
+            this.localAddress.selected_line_id_refund = line;
+            await this.getStockMoveLineLotsRefund(this.localAddress.selected_line_id_refund.id);
+            console.log(line)
+        } catch (error) {
+            this.notification.add("Error al mostrar formulario de lotes: " + error.message, { type: "danger" });
+        }
+    }
+
+    async hideLotFormRefund() {
+        try {
+            this.localAddress.selected_line_id_refund = null;
+            await this.loadProducts()
+        } catch (error) {
+            this.notification.add("Error al cerrar formulario de lotes: " + error.message, { type: "danger" });
+        }
+    }
+
+    getLotNamesForLineRefund(line) {
+        if (!line.lot_ids || !this.localAddress.lot_ids) {
+            return "";
+        }
+
+        return this.localAddress.lot_ids
+            .filter(lot => line.lot_ids.includes(lot.id))
+            .map(lot => lot.name)
+            .join(", ");
+    }
+
+    async addLotRefund() {
+        try {
+            console.log(this.localAddress.selected_line_id_refund)
+            await this.orm.create(
+                "route.sale.return.move.line",
+                [{
+                    return_line_id: this.localAddress.selected_line_id_refund.id,
+                    product_id: this.localAddress.selected_line_id_refund.product_id[0],
+                    quantity: 0,
+                }]
+            )
+            await this.getStockMoveLineLotsRefund(this.localAddress.selected_line_id_refund.id);
+        } catch (error) {
+            this.notification.add("Error al agregar lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    async getStockMoveLineLotsRefund(id) {
+        this.localAddress.selected_line_id_refund_selected_move_line = await this.orm.searchRead(
+            "route.sale.return.move.line",
+            [["return_line_id", "=", id]],
+            ["id", "return_line_id", "product_id", "lot_id", "quantity"]
+        )
+        console.log(this.localAddress.selected_line_id_refund_selected_move_line)
+    }
+
+    async onLotLineSelectedRefund(ev, line_lot) {
+        try {
+            const selectedId = parseInt(ev.id, 10);
+            if (!selectedId) return;
+
+            await this.orm.write(
+                "route.sale.return.move.line",
+                [("return_line_id", "=", line_lot.id)],
+                { lot_id: selectedId }
+            );
+            await this.getStockMoveLineLotsRefund(this.localAddress.selected_line_id_refund.id);
+        } catch (error) {
+            this.notification.add("Error al actualizar el lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    async onLotQuantityChangeRefund(ev, line_lot) {
+        try {
+            const value = parseInt(ev.target.value, 10);
+            if (!value) return;
+
+            await this.orm.write(
+                "route.sale.return.move.line",
+                [("return_line_id", "=", line_lot.id)],
+                { quantity: value }
+            );
+            await this.getStockMoveLineLotsRefund(this.localAddress.selected_line_id_refund.id);
+        } catch (error) {
+            this.notification.add("Error al actualizar cantidad del lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    async removeLotRefund(line) {
+        try {
+            await this.orm.unlink("route.sale.return.move.line", [line.id]);
+            await this.getStockMoveLineLotsRefund(this.localAddress.selected_line_id_refund.id);
+        } catch (error) {
+            this.notification.add("Error al eliminar lote: " + error.message, { type: "danger" });
+        }
+    }
+
+    // Lote de inventario
     async addLot() {
         try {
             await this.orm.create(
@@ -158,7 +361,6 @@ export class CustomerCard extends Component {
 
     async removeLot(line) {
         try {
-            console.log("Removing lot line:", line);
             await this.orm.unlink("stock.move.line", [line.id]);
             await this.getStockMoveLineLots(this.localAddress.selected_line_id.id);
         } catch (error) {
@@ -168,7 +370,7 @@ export class CustomerCard extends Component {
 
     async onLotLineSelected(ev, line_lot) {
         try {
-            const selectedId = parseInt(ev.target.value, 10);
+            const selectedId = parseInt(ev.id, 10);
             if (!selectedId) return;
 
             await this.orm.write(
@@ -298,6 +500,21 @@ export class CustomerCard extends Component {
         }
     }
 
+    async toggleNoCharge(line) {
+        line.no_charge = !line.no_charge;
+
+        try {
+            await this.orm.call(
+                "route.sale.product.line",
+                "write",
+                [[line.id], { no_charge: line.no_charge }]
+            );
+        } catch (error) {
+            line.no_charge = !line.no_charge;
+            console.error(error);
+        }
+    }
+
     async toggleRefund() {
         try {
             this.localAddress.is_refund = !this.localAddress.is_refund;
@@ -340,28 +557,6 @@ export class CustomerCard extends Component {
             .map(lot => lot.name)
             .join(", ");
     }
-
-    // async onLotSelected(ev, line) {
-    //     return
-    //     try {
-    //         const selectedId = parseInt(ev.target.value, 10);
-    //         if (!selectedId) return;
-
-    //         line.lot_id = [selectedId, ev.target.options[ev.target.selectedIndex].text];
-    //         this.localAddress.product_lines = [...this.localAddress.product_lines];
-
-    //         await this.orm.call(
-    //             "route.sale.product.line",
-    //             "write",
-    //             [[line.id], { lot_id: selectedId }]
-    //         );
-
-    //         this.notification.add("Lote actualizado", { type: "success" });
-    //     } catch (error) {
-    //         console.error(error)
-    //         this.notification.add("Error al actualizar el lote: " + (error.message || error), { type: "danger" });
-    //     }
-    // }
 
     async onLotSelectedRefund(ev, line) {
         try {
@@ -664,6 +859,7 @@ export class CustomerCard extends Component {
 
             await this.loadProducts()
             await this.closeSignatureModalTasting();
+            this.localAddress.selected_line_move_ids_tasting = [];
         } catch (error) {
             this.notification.add("Error al crear devolución: " + error.message, { type: "danger" });
         }

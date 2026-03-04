@@ -17,6 +17,8 @@ class RouteSaleProductLine(models.Model):
     )
     quantity = fields.Float(string="Cantidad", default=1.0)
 
+    no_charge = fields.Boolean(string="Producto sin cargo", default=False)
+
     route_product_ids = fields.Many2many(
         "product.product",
         string="Productos de la Ruta",
