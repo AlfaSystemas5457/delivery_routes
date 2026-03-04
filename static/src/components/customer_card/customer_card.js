@@ -620,7 +620,6 @@ export class CustomerCard extends Component {
                 [[this.localAddress.id]]
             );
             this.availableProductsRefund.items = allProducts || [];
-            console.log(this.availableProductsRefund.items)
         } catch (error) {
             this.notification.add(
                 "Error al cargar productos disponibles: " + error.message,
@@ -746,9 +745,7 @@ export class CustomerCard extends Component {
 
     async onProductSelected(ev) {
         try {
-            console.log(this.localAddress.product_lines)
             const productId = parseInt(ev.target.value);
-            console.log(productId)
             if (!productId) return;
 
             const line = await this.orm.call(

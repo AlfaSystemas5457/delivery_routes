@@ -388,7 +388,7 @@
                         </div>
                         <div class="m-0 bg-delivery w-100 h-100 p-3 overflow-auto d-flex flex-column">
                             <div class="w-100 text-center p-1 mb-3">
-                                <span class="text-center font-color-white">La informacion se guarda automáticamente al seleccionar un lote o cambiar una cantidad.
+                                <span class="text-center font-color-black-fixed">La informacion se guarda automáticamente al seleccionar un lote o cambiar una cantidad.
                                 </span>
                             </div>
                             <div class="">
@@ -482,7 +482,7 @@
                         </div>
                         <div class="m-0 bg-delivery w-100 h-100 p-3 overflow-auto d-flex flex-column">
                             <div class="w-100 text-center p-1 mb-3">
-                                <span class="text-center font-color-white">La informacion se guarda automáticamente al seleccionar un lote o cambiar una cantidad.
+                                <span class="text-center font-color-black-fixed">La informacion se guarda automáticamente al seleccionar un lote o cambiar una cantidad.
                                 </span>
                             </div>
                             <div class="">
@@ -849,7 +849,7 @@
                         </div>
                         <div class="m-0 bg-delivery w-100 h-100 p-3 overflow-auto d-flex flex-column">
                             <div class="w-100 text-center p-1 mb-3">
-                                <span class="text-center font-color-white">La informacion se guarda automáticamente al seleccionar un lote o cambiar una cantidad.
+                                <span class="text-center font-color-black-fixed">La informacion se guarda automáticamente al seleccionar un lote o cambiar una cantidad.
                                 </span>
                             </div>
                             <div class="">
