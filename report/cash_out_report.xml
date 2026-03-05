@@ -199,18 +199,21 @@
                                                         <t t-foreach="line.tasting_lines"
                                                             t-as="product">
                                                             <t t-if="product.quantity > 0">
-                                                                <tr style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
-                                                                    <td class="px-2">
+                                                                <tr>
+                                                                    <td class="px-2"
+                                                                        style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
                                                                         <span t-esc="product.product_id.name"/>
                                                                     </td>
                                                                     <td class="px-2"
-                                                                        style="white-space: normal; word-break: break-all;">
+                                                                        style="background-color: #ffffff !important; -webkit-print-color-adjust: exact; white-space: normal; word-break: break-all;">
                                                                         <span t-esc="line.tasting_id.name"/>
                                                                     </td>
-                                                                    <td class="px-2">
+                                                                    <td class="px-2"
+                                                                        style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
                                                                         <span t-esc="product.quantity"/>
                                                                     </td>
-                                                                    <td class="px-2">
+                                                                    <td class="px-2"
+                                                                        style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
                                                                         <span t-esc="product.quantity * product.product_id.list_price"/>
                                                                     </td>
                                                                 </tr>
