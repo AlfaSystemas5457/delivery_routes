@@ -30,13 +30,13 @@
                                         style="font-size:20px">Pedido</h2>
                                 </div>
                                 <table class="table table-sm table-borderless mt16"
-                                    style="font-size:14px">
+                                    style="font-size:12px">
                                     <thead>
                                         <tr>
-                                            <th class="px-3">Producto</th>
-                                            <th class="px-3">Orden de venta</th>
-                                            <th class="px-3">Cantidad</th>
-                                            <th class="px-3">Subtotal</th>
+                                            <th class="px-2">Producto</th>
+                                            <th class="px-2">Orden de venta</th>
+                                            <th class="px-2">Cantidad</th>
+                                            <th class="px-2">Subtotal</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -48,7 +48,7 @@
                                                     style="font-style: italic; color: #555; font-weight: bold; background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
                                                     <div class="d-flex justify-content-between align-items-center">
                                                         <div>
-                                                            <span>
+                                                            <span class="text-nowrap">
                                                                 <t t-esc="line.contact.name"/>
                                                             </span>
                                                         </div>
@@ -69,19 +69,19 @@
                                                 t-as="product">
                                                 <t t-if="product.quantity > 0">
                                                     <tr>
-                                                        <td class="px-3"
+                                                        <td class="px-2"
                                                             style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
                                                             <span t-esc="product.product_id.name" />
                                                         </td>
-                                                        <td class="px-3"
+                                                        <td class="px-2"
                                                             style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
                                                             <span t-esc="line.sale_order_id.name" />
                                                         </td>
-                                                        <td class="px-3"
+                                                        <td class="px-2"
                                                             style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
                                                             <span t-esc="product.quantity" />
                                                         </td>
-                                                        <td class="px-3"
+                                                        <td class="px-2"
                                                             style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
                                                             <span t-esc="product.quantity * product.product_id.list_price" />
                                                         </td>
@@ -109,13 +109,13 @@
                                                 style="font-size:20px">Devoluciones</h2>
                                         </div>
                                         <table class="table table-sm table-borderless mt16"
-                                            style="font-size:14px">
+                                            style="font-size:12px">
                                             <thead>
                                                 <tr>
-                                                    <th class="px-3">Producto</th>
-                                                    <th class="px-3">Mov.</th>
-                                                    <th class="px-3">Cantidad</th>
-                                                    <th class="px-3">Subtotal</th>
+                                                    <th class="px-2">Producto</th>
+                                                    <th class="px-2">Mov.</th>
+                                                    <th class="px-2">Cantidad</th>
+                                                    <th class="px-2">Subtotal</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -126,12 +126,10 @@
                                                             <td colspan="4"
                                                                 class="px-3"
                                                                 style="font-style: italic; color: #555; font-weight: bold;">
-                                                                <div class="d-flex justify-content-between align-items-center">
-                                                                    <div>
-                                                                        <span>
-                                                                            <t t-esc="line.contact.name"/>
-                                                                        </span>
-                                                                    </div>
+                                                                <div class="text-start">
+                                                                    <span>
+                                                                        <t t-esc="line.contact.name"/>
+                                                                    </span>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -139,17 +137,18 @@
                                                             t-as="product">
                                                             <t t-if="product.quantity > 0">
                                                                 <tr style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
-                                                                    <td class="px-3">
-                                                                        <span t-esc="product.product_id.name" />
+                                                                    <td class="px-2">
+                                                                        <span t-esc="product.product_id.name"/>
                                                                     </td>
-                                                                    <td class="px-3">
-                                                                        <span t-esc="line.refund_id.name" />
+                                                                    <td class="px-2"
+                                                                        style="white-space: normal; word-break: break-all;">
+                                                                        <span t-esc="line.refund_id.name"/>
                                                                     </td>
-                                                                    <td class="px-3">
-                                                                        <span t-esc="product.quantity" />
+                                                                    <td class="px-2">
+                                                                        <span t-esc="product.quantity"/>
                                                                     </td>
-                                                                    <td class="px-3">
-                                                                        <span t-esc="product.quantity * product.product_id.list_price" />
+                                                                    <td class="px-2">
+                                                                        <span t-esc="product.quantity * product.product_id.list_price"/>
                                                                     </td>
                                                                 </tr>
                                                             </t>
@@ -168,13 +167,13 @@
                                                 style="font-size:20px">Degustaciones</h2>
                                         </div>
                                         <table class="table table-sm table-borderless mt16"
-                                            style="font-size:14px">
+                                            style="font-size:12px">
                                             <thead>
                                                 <tr>
-                                                    <th class="px-3">Producto</th>
-                                                    <th class="px-3">Mov.</th>
-                                                    <th class="px-3">Cantidad</th>
-                                                    <th class="px-3">Subtotal</th>
+                                                    <th class="px-2">Producto</th>
+                                                    <th class="px-2">Mov.</th>
+                                                    <th class="px-2">Cantidad</th>
+                                                    <th class="px-2">Subtotal</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -185,12 +184,10 @@
                                                             <td colspan="4"
                                                                 class="px-3"
                                                                 style="font-style: italic; color: #555; font-weight: bold;">
-                                                                <div class="d-flex justify-content-between align-items-center">
-                                                                    <div>
-                                                                        <span>
-                                                                            <t t-esc="line.contact.name"/>
-                                                                        </span>
-                                                                    </div>
+                                                                <div class="text-start">
+                                                                    <span>
+                                                                        <t t-esc="line.contact.name"/>
+                                                                    </span>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -198,17 +195,18 @@
                                                             t-as="product">
                                                             <t t-if="product.quantity > 0">
                                                                 <tr style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
-                                                                    <td class="px-3">
-                                                                        <span t-esc="product.product_id.name" />
+                                                                    <td class="px-2">
+                                                                        <span t-esc="product.product_id.name"/>
                                                                     </td>
-                                                                    <td class="px-3">
-                                                                        <span t-esc="line.tasting_id.name" />
+                                                                    <td class="px-2"
+                                                                        style="white-space: normal; word-break: break-all;">
+                                                                        <span t-esc="line.tasting_id.name"/>
                                                                     </td>
-                                                                    <td class="px-3">
-                                                                        <span t-esc="product.quantity" />
+                                                                    <td class="px-2">
+                                                                        <span t-esc="product.quantity"/>
                                                                     </td>
-                                                                    <td class="px-3">
-                                                                        <span t-esc="product.quantity * product.product_id.list_price" />
+                                                                    <td class="px-2">
+                                                                        <span t-esc="product.quantity * product.product_id.list_price"/>
                                                                     </td>
                                                                 </tr>
                                                             </t>
