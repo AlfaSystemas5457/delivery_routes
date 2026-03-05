@@ -124,10 +124,10 @@
                                                 <t t-foreach="record.route_address_ids"
                                                     t-as="line">
                                                     <t t-if="line.is_refunded">
-                                                        <tr style="background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
+                                                        <tr>
                                                             <td colspan="4"
                                                                 class="px-3"
-                                                                style="font-style: italic; color: #555; font-weight: bold;">
+                                                                style="font-style: italic; color: #555; font-weight: bold; background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
                                                                 <div class="text-start">
                                                                     <span>
                                                                         <t t-esc="line.contact.name"/>
@@ -138,18 +138,21 @@
                                                         <t t-foreach="line.return_lines"
                                                             t-as="product">
                                                             <t t-if="product.quantity > 0">
-                                                                <tr style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
-                                                                    <td class="px-2">
+                                                                <tr>
+                                                                    <td class="px-2"
+                                                                        style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
                                                                         <span t-esc="product.product_id.name"/>
                                                                     </td>
                                                                     <td class="px-2"
-                                                                        style="white-space: normal; word-break: break-all;">
+                                                                        style="background-color: #ffffff !important; -webkit-print-color-adjust: exact; white-space: normal; word-break: break-all;">
                                                                         <span t-esc="line.refund_id.name"/>
                                                                     </td>
-                                                                    <td class="px-2">
+                                                                    <td class="px-2"
+                                                                        style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
                                                                         <span t-esc="product.quantity"/>
                                                                     </td>
-                                                                    <td class="px-2">
+                                                                    <td class="px-2"
+                                                                        style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
                                                                         <span t-esc="product.quantity * product.product_id.list_price"/>
                                                                     </td>
                                                                 </tr>
@@ -182,10 +185,10 @@
                                                 <t t-foreach="record.route_address_ids"
                                                     t-as="line">
                                                     <t t-if="line.is_tasted">
-                                                        <tr style="background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
+                                                        <tr>
                                                             <td colspan="4"
                                                                 class="px-3"
-                                                                style="font-style: italic; color: #555; font-weight: bold;">
+                                                                style="font-style: italic; color: #555; font-weight: bold; background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact;">
                                                                 <div class="text-start">
                                                                     <span>
                                                                         <t t-esc="line.contact.name"/>
