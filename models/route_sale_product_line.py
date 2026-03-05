@@ -16,9 +16,11 @@ class RouteSaleProductLine(models.Model):
         domain="[('id', 'in', route_product_ids)]",
     )
     quantity = fields.Float(string="Cantidad", default=1.0)
-    price = fields.Float(string="Precio", default=0.0, compute="_compute_price")
+    price = fields.Float(
+        string="Precio unitario", default=0.0, compute="_compute_price"
+    )
 
-    no_charge = fields.Boolean(string="Producto sin cargo", default=False)
+    no_charge = fields.Boolean(string="Producto sin cargo?", default=False)
 
     route_product_ids = fields.Many2many(
         "product.product",

@@ -106,7 +106,7 @@
                                             <th>Producto</th>
                                             <th style="width: 180px;">Producto sin cargo?</th>
                                             <th style="width: 120px;">Cantidad</th>
-                                            <th style="width: 120px;">Precio</th>
+                                            <th style="width: 120px;">Precio unitario</th>
                                             <th></th>
                                         </tr>
                                     </thead>
