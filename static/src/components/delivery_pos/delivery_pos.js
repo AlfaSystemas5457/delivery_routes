@@ -47,7 +47,10 @@ export class DeliveryPosView extends Component {
                 "route.route",
                 [["user_id", "=", this.state.config.driver_id[0]], ["state", "!=", "end"]],
                 ["id", "name", "state", "route_address_ids", "product", "description", "amount_total", "warehouse_id"],
-                { limit: 1 }
+                {
+                    limit: 1,
+                    order: "id desc"
+                }
             );
 
             if (routes.length > 0) {
