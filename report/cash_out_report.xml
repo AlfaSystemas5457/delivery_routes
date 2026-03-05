@@ -53,7 +53,7 @@
                                                             </span>
                                                         </div>
                                                         <div>
-                                                            <span>
+                                                            <span class="text-nowrap">
                                                                 <t t-esc="{
                                                                     'pending': 'Pendiente',
                                                                     'skipped': 'Visitado sin pedido',
@@ -83,7 +83,9 @@
                                                         </td>
                                                         <td class="px-2"
                                                             style="background-color: #ffffff !important; -webkit-print-color-adjust: exact;">
-                                                            <span t-esc="product.quantity * product.product_id.list_price" />
+                                                            <span t-if="not product.no_charge"
+                                                                t-esc="product.quantity * product.product_id.list_price" />
+                                                            <span t-if="product.no_charge">Producto sin cargo.</span>
                                                         </td>
                                                     </tr>
                                                 </t>
