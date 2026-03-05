@@ -16,6 +16,7 @@ class RouteSaleProductLine(models.Model):
         domain="[('id', 'in', route_product_ids)]",
     )
     quantity = fields.Float(string="Cantidad", default=1.0)
+    price = fields.Float(string="Precio", default=0.0, compute="_compute_price")
 
     no_charge = fields.Boolean(string="Producto sin cargo", default=False)
 
@@ -25,6 +26,10 @@ class RouteSaleProductLine(models.Model):
         compute="_compute_route_products",
         store=True,
     )
+
+    def _compute_price(self):
+        for rec in self:
+            rec.price = rec.product_id.list_price
 
     @api.depends("sale_address_id.route_id.product")
     def _compute_route_products(self):

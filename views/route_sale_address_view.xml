@@ -69,6 +69,9 @@
                     <notebook>
                         <page string="Productos"
                             name="products">
+                            <div class="text-muted mb-2 o_horizontal_separator text-uppercase fw-bolder small">
+                            El precio puede cambiar dependiendo de la configuración del cliente.
+                            </div>
                             <field name="product_lines"
                                 readonly="sale_order_id or state != 'process'">
                                 <list editable="bottom">
@@ -77,6 +80,7 @@
                                         widget="boolean_toggle"/>
                                     <field name="quantity"
                                         sum="Total Cantidad"/>
+                                    <field name="price"/>
                                 </list>
                             </field>
                         </page>

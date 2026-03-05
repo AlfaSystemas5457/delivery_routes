@@ -514,6 +514,7 @@ class RouteSaleAddress(models.Model):
                     "product_id",
                     "no_charge",
                     "quantity",
+                    "price",
                 ]
             ),
             "sale_order_id": self.sale_order_id.id if self.sale_order_id else False,
