@@ -8,7 +8,7 @@
     "license": "LGPL-3",
     "category": "Warehouse Management",
     "version": "0.1",
-    "depends": ["base", "stock", "hr", "sale", "mail", "web", "account"],
+    "depends": ["base", "stock", "hr", "sale", "mail", "web", "account", "sale_stock"],
     "data": [
         "security/ir.model.access.csv",
         "security/groups_security.xml",

@@ -182,9 +182,9 @@ class Route(models.Model):
 
     def action_end(self):
         for rec in self:
-            if not rec.cash_out_report:
-                cash_out_report = rec.generate_cash_out_report()
-                rec.write({"cash_out_report": cash_out_report, "state": "end"})
+            if rec.state != "end":
+                rec.regenerate_cash_out_report()
+                rec.state = "end"
             rec.state = "end"
 
     def action_start(self):
@@ -215,9 +215,35 @@ class Route(models.Model):
 
     def regenerate_cash_out_report(self):
         self.ensure_one()
+        pdf_base64 = self.generate_cash_out_report()
 
-        cash_out_report = self.generate_cash_out_report()
-        self.write({"cash_out_report": cash_out_report})
+        pdf_bytes = base64.b64decode(pdf_base64)
+
+        old = self.env["ir.attachment"].search(
+            [
+                ("res_model", "=", self._name),
+                ("res_id", "=", self.id),
+                ("name", "=", f"Corte_{self.name}.pdf"),
+            ]
+        )
+        old.unlink()
+
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": f"Corte_{self.name}.pdf",
+                "type": "binary",
+                "datas": base64.b64encode(pdf_bytes),
+                "res_model": self._name,
+                "res_id": self.id,
+                "mimetype": "application/pdf",
+            }
+        )
+
+        self.message_post(
+            body="Reporte de corte generado", attachment_ids=[attachment.id]
+        )
+
+        self.cash_out_report = pdf_base64
 
     def generate_cash_out_report(self):
         report_name = "delivery_routes.action_report_route_cash_out"

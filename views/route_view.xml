@@ -128,7 +128,9 @@
                         </page>
                     </notebook>
                 </sheet>
-                <chatter />
+                <div class="o_attachment_preview"
+                    insisible="state != 'end'"/>
+                <chatter reload_on_attachment="True"/>
             </form>
         </field>
     </record>
