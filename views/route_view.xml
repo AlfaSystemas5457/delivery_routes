@@ -43,6 +43,13 @@
                         type="object"
                         class="btn-secondary"
                         groups="delivery_routes.group_route_access_all" />
+
+                    <button name="print_cash_out_report"
+                        string="Imprimir"
+                        invisible="not cash_out_report"
+                        type="object"
+                        class="btn-secondary"
+                        groups="delivery_routes.group_route_access_all" />
                 </header>
                 <sheet>
                     <group>
@@ -113,18 +120,6 @@
                                         icon="fa-map"/>
                                 </list>
                             </field>
-                        </page>
-                        <page string="Reporte de corte"
-                            invisible="not cash_out_report">
-                            <button name="print_cash_out_report"
-                                string="Imprimir"
-                                type="object"
-                                class="btn-secondary"
-                                groups="delivery_routes.group_route_access_all" />
-                            <field name="cash_out_report"
-                                widget="pdf_viewer"
-                                nolabel="1"
-                                readonly="1"/>
                         </page>
                     </notebook>
                 </sheet>
