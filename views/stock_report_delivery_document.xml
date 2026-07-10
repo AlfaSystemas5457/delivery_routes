@@ -17,7 +17,7 @@
     <template id="report_picking"
         name="template_name"
         inherit_id="stock.report_picking">
-        <xpath expr="//div[@class='page o_report_stockpicking_operations']"
+        <xpath expr="//div[@class='page']"
             position="after">
             <div class="w-100 mt16 mb16 d-flex justify-content-end">
                 <img t-if="o.customer_signature"
